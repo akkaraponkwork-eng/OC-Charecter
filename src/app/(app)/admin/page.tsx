@@ -23,7 +23,7 @@ export default function AdminPage() {
   const [collaborations, setCollaborations] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'users'|'characters'|'universes'|'collaborations'|'messages'>('users');
+  const [activeTab, setActiveTab] = useState<'users'|'characters'|'universes'>('users');
   
   const [showCreate, setShowCreate] = useState(false);
   const [newUsername, setNewUsername] = useState('');
@@ -141,18 +141,6 @@ export default function AdminPage() {
         >
           <BookOpen size={18} /> Universes
         </button>
-        <button 
-          onClick={() => setActiveTab('collaborations')} 
-          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'collaborations' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'collaborations' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
-        >
-          <Users size={18} /> Collaborations
-        </button>
-        <button 
-          onClick={() => setActiveTab('messages')} 
-          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'messages' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'messages' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
-        >
-          <Mail size={18} /> Messages
-        </button>
       </div>
 
       {/* Stats */}
@@ -168,14 +156,6 @@ export default function AdminPage() {
         <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800 }}>{universes.length}</div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Universes</div>
-        </div>
-        <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{collaborations.length}</div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Collaborations</div>
-        </div>
-        <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{messages.length}</div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Messages</div>
         </div>
       </div>
 
@@ -382,70 +362,6 @@ export default function AdminPage() {
                       className="btn-danger" 
                       style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }} 
                       onClick={() => handleDeleteSystemData('universe', uni.id)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : activeTab === 'collaborations' ? (
-        <div className="glass" style={{ overflow: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                {['Collab ID', 'Universe ID', 'User ID', 'Role', 'Joined At', 'Actions'].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {collaborations.map(col => (
-                <tr key={col.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{col.id}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.universeId}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.userId}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{col.role}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.joinedAt ? new Date(col.joinedAt).toLocaleDateString() : '—'}</td>
-                  <td style={{ padding: '0.75rem 1.25rem' }}>
-                    <button 
-                      className="btn-danger" 
-                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }} 
-                      onClick={() => handleDeleteSystemData('collaboration', col.id)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : activeTab === 'messages' ? (
-        <div className="glass" style={{ overflow: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                {['Message ID', 'Chat ID', 'Sender ID', 'Content', 'Created', 'Actions'].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {messages.map(msg => (
-                <tr key={msg.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.id}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.chatId}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.senderId}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{msg.content?.substring(0, 50)}{msg.content?.length > 50 ? '...' : ''}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : '—'}</td>
-                  <td style={{ padding: '0.75rem 1.25rem' }}>
-                    <button 
-                      className="btn-danger" 
-                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }} 
-                      onClick={() => handleDeleteSystemData('message', msg.id)}
                     >
                       <Trash2 size={14} />
                     </button>
