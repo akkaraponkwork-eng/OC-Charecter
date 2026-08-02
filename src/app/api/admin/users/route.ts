@@ -17,6 +17,7 @@ export async function GET() {
       uid: r.get('uid'), email: r.get('email'), username: r.get('username'),
       displayName: r.get('displayName'), avatarUrl: r.get('avatarUrl'),
       role: r.get('role'), createdAt: r.get('createdAt'),
+      bio: r.get('bio'), socialLinks: r.get('socialLinks'), isPublic: r.get('isPublic'),
     }));
     return NextResponse.json(users);
   } catch (error: any) {

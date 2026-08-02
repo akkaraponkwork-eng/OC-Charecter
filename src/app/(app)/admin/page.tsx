@@ -19,8 +19,11 @@ export default function AdminPage() {
   }, [session, router]);
   const [users, setUsers] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
+  const [universes, setUniverses] = useState<any[]>([]);
+  const [collaborations, setCollaborations] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'users'|'characters'>('users');
+  const [activeTab, setActiveTab] = useState<'users'|'characters'|'universes'|'collaborations'|'messages'>('users');
   
   const [showCreate, setShowCreate] = useState(false);
   const [newUsername, setNewUsername] = useState('');
@@ -39,10 +42,16 @@ export default function AdminPage() {
   const load = () => {
     Promise.all([
       fetch('/api/admin/users').then(r => r.json()),
-      fetch('/api/admin/characters').then(r => r.json())
-    ]).then(([uData, cData]) => {
+      fetch('/api/admin/characters').then(r => r.json()),
+      fetch('/api/admin/system-data').then(r => r.json())
+    ]).then(([uData, cData, sysData]) => {
       setUsers(Array.isArray(uData) ? uData : []);
       setCharacters(Array.isArray(cData) ? cData : []);
+      if (sysData && !sysData.error) {
+        setUniverses(sysData.universes || []);
+        setCollaborations(sysData.collaborations || []);
+        setMessages(sysData.messages || []);
+      }
       setLoading(false);
     });
   };
@@ -113,17 +122,47 @@ export default function AdminPage() {
         >
           <BookOpen size={18} /> Characters
         </button>
+        <button 
+          onClick={() => setActiveTab('universes')} 
+          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'universes' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'universes' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
+        >
+          <BookOpen size={18} /> Universes
+        </button>
+        <button 
+          onClick={() => setActiveTab('collaborations')} 
+          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'collaborations' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'collaborations' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
+        >
+          <Users size={18} /> Collaborations
+        </button>
+        <button 
+          onClick={() => setActiveTab('messages')} 
+          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'messages' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'messages' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
+        >
+          <Mail size={18} /> Messages
+        </button>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800 }}>{users.length}</div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Total Users</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Users</div>
         </div>
         <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', fontWeight: 800 }}>{characters.length}</div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Total Characters</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Characters</div>
+        </div>
+        <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{universes.length}</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Universes</div>
+        </div>
+        <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{collaborations.length}</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Collaborations</div>
+        </div>
+        <div className="glass-sm" style={{ padding: '1.25rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{messages.length}</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Messages</div>
         </div>
       </div>
 
@@ -207,6 +246,20 @@ export default function AdminPage() {
                         </div>
                         <div style={{ fontSize: '0.9rem' }}>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}</div>
                       </div>
+                      
+                      <div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <BookOpen size={14} /> Bio
+                        </div>
+                        <div style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>{user.bio || '—'}</div>
+                      </div>
+                      
+                      <div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <Shield size={14} /> Is Public
+                        </div>
+                        <div style={{ fontSize: '0.9rem' }}>{user.isPublic === 'true' ? 'Yes' : 'No'}</div>
+                      </div>
                     </div>
 
                     <div style={{ height: 1, background: 'var(--glass-border)' }} />
@@ -249,7 +302,7 @@ export default function AdminPage() {
             );
           })}
         </div>
-      ) : (
+      ) : activeTab === 'characters' ? (
         <div className="glass" style={{ overflow: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
@@ -287,7 +340,82 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
-      )}
+      ) : activeTab === 'universes' ? (
+        <div className="glass" style={{ overflow: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                {['Image', 'Universe Name', 'Creator ID', 'Public', 'Created'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {universes.map(uni => (
+                <tr key={uni.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <td style={{ padding: '0.75rem 1.25rem' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 8, background: uni.imageUrl ? `url(${uni.imageUrl}) center/cover` : 'var(--glass-border)' }} />
+                  </td>
+                  <td style={{ padding: '0.75rem 1.25rem', fontWeight: 600 }}>
+                    <a href={`/universes/${uni.id}`} style={{ color: 'var(--accent)', textDecoration: 'none' }} target="_blank">
+                      {uni.name}
+                    </a>
+                  </td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{uni.userId}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{uni.isPublic === 'true' ? 'Yes' : 'No'}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{uni.createdAt ? new Date(uni.createdAt).toLocaleDateString() : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : activeTab === 'collaborations' ? (
+        <div className="glass" style={{ overflow: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                {['Collab ID', 'Universe ID', 'User ID', 'Role', 'Joined At'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {collaborations.map(col => (
+                <tr key={col.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{col.id}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.universeId}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.userId}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{col.role}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.joinedAt ? new Date(col.joinedAt).toLocaleDateString() : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : activeTab === 'messages' ? (
+        <div className="glass" style={{ overflow: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                {['Message ID', 'Universe ID', 'Sender ID', 'Content', 'Created'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {messages.map(msg => (
+                <tr key={msg.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.id}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.universeId}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.senderId}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{msg.content?.substring(0, 50)}{msg.content?.length > 50 ? '...' : ''}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
 
       {/* Create user modal */}
       {showCreate && (
