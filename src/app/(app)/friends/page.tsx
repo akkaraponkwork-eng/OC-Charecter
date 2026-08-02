@@ -16,6 +16,10 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const [activeTab, setActiveTab] = useState<'friends' | 'suggested'>('friends');
+  const [suggestedUsers, setSuggestedUsers] = useState<any[]>([]);
+  const [loadingSuggested, setLoadingSuggested] = useState(false);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [adding, setAdding] = useState(false);
 
@@ -26,6 +30,7 @@ export default function FriendsPage() {
   useEffect(() => {
     if (session) {
       loadFriends();
+      loadSuggestedUsers();
     }
   }, [session]);
 
@@ -39,15 +44,26 @@ export default function FriendsPage() {
     setLoading(false);
   };
 
-  const handleAddFriend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  const loadSuggestedUsers = async () => {
+    setLoadingSuggested(true);
+    const res = await fetch('/api/friends/suggested');
+    if (res.ok) {
+      const data = await res.json();
+      setSuggestedUsers(Array.isArray(data) ? data : []);
+    }
+    setLoadingSuggested(false);
+  };
+
+  const handleAddFriend = async (e?: React.FormEvent, targetUsername?: string) => {
+    if (e) e.preventDefault();
+    const usernameToAdd = targetUsername || searchQuery.trim();
+    if (!usernameToAdd) return;
 
     setAdding(true);
     const res = await fetch('/api/friends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: searchQuery.trim() })
+      body: JSON.stringify({ username: usernameToAdd })
     });
 
     const data = await res.json();
@@ -55,8 +71,10 @@ export default function FriendsPage() {
 
     if (res.ok) {
       showToast('Friend added successfully!', 'success');
-      setSearchQuery('');
+      if (!targetUsername) setSearchQuery('');
       loadFriends();
+      // Remove from suggested list if added from there
+      setSuggestedUsers(suggestedUsers.filter(u => u.username !== usernameToAdd));
     } else {
       showToast(data.error || 'Failed to add friend', 'error');
     }
@@ -147,21 +165,46 @@ export default function FriendsPage() {
 
   return (
     <div className="page-container">
-      <div className="section-header" style={{ marginBottom: '2rem' }}>
+      <div className="section-header" style={{ marginBottom: '1rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Users size={32} className="text-primary" /> Friends
+          <Users size={32} className="text-primary" /> เพื่อน
         </h1>
       </div>
 
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)' }}>
+        <button
+          onClick={() => setActiveTab('friends')}
+          style={{
+            padding: '0.75rem 1.5rem', background: 'none', border: 'none', fontWeight: 600, fontSize: '1rem',
+            color: activeTab === 'friends' ? 'var(--primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'friends' ? '2px solid var(--primary)' : '2px solid transparent',
+            cursor: 'pointer', transition: '0.2s'
+          }}
+        >
+          เพื่อนของฉัน
+        </button>
+        <button
+          onClick={() => setActiveTab('suggested')}
+          style={{
+            padding: '0.75rem 1.5rem', background: 'none', border: 'none', fontWeight: 600, fontSize: '1rem',
+            color: activeTab === 'suggested' ? 'var(--primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'suggested' ? '2px solid var(--primary)' : '2px solid transparent',
+            cursor: 'pointer', transition: '0.2s'
+          }}
+        >
+          ยูสเซอร์เพื่อนแนะนำ
+        </button>
+      </div>
+
       <div className="glass" style={{ padding: '1.5rem', marginBottom: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Add a Friend</h2>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>เพิ่มเพื่อน (ระบุชื่อผู้ใช้)</h2>
         <form onSubmit={handleAddFriend} style={{ display: 'flex', gap: '1rem' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
               type="text" 
               className="input" 
-              placeholder="Enter exact username..." 
+              placeholder="ระบุชื่อผู้ใช้แบบเป๊ะๆ (เช่น สำหรับการเพิ่มแอดมิน)..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ paddingLeft: '2.75rem' }}
@@ -169,61 +212,113 @@ export default function FriendsPage() {
           </div>
           <button type="submit" className="btn-primary" disabled={adding} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {adding ? <Loader2 size={18} className="spin" /> : <UserPlus size={18} />}
-            Add
+            เพิ่ม
           </button>
         </form>
       </div>
 
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>My Friends ({friends.length})</h2>
-      
-      {loadingPublic && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><div className="spinner" /></div>}
+      {activeTab === 'friends' && (
+        <>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>เพื่อนของฉัน ({friends.length})</h2>
+          
+          {loadingPublic && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><div className="spinner" /></div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {friends.map(friend => (
-          <div 
-            key={friend.uid} 
-            className="glass-card" 
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'transform 0.2s, border-color 0.2s' }}
-            onClick={() => openProfile(friend.username)}
-          >
-            <div style={{ width: 50, height: 50, borderRadius: '50%', background: friend.avatarUrl ? `url(${friend.avatarUrl}) center/cover` : 'var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
-              {!friend.avatarUrl && (friend.displayName || friend.username).charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{friend.displayName || friend.username}</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@{friend.username}</div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/messages?userId=${friend.uid}`);
-                }} 
-                className="btn-secondary" 
-                style={{ padding: '0.5rem', borderRadius: '50%' }}
-                title="Message friend"
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            {friends.map(friend => (
+              <div 
+                key={friend.uid} 
+                className="glass-card" 
+                style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'transform 0.2s, border-color 0.2s' }}
+                onClick={() => openProfile(friend.username)}
               >
-                <MessageCircle size={16} />
-              </button>
-              <button 
-                onClick={(e) => handleRemoveFriend(friend.uid, e)} 
-                className="btn-danger" 
-                style={{ padding: '0.5rem', borderRadius: '50%' }}
-                title="Remove friend"
-              >
-                <UserMinus size={16} />
-              </button>
-            </div>
+                <div style={{ width: 50, height: 50, borderRadius: '50%', background: friend.avatarUrl ? `url(${friend.avatarUrl}) center/cover` : 'var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
+                  {!friend.avatarUrl && (friend.displayName || friend.username).charAt(0).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{friend.displayName || friend.username}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@{friend.username}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/messages?userId=${friend.uid}`);
+                    }} 
+                    className="btn-secondary" 
+                    style={{ padding: '0.5rem', borderRadius: '50%' }}
+                    title="Message friend"
+                  >
+                    <MessageCircle size={16} />
+                  </button>
+                  <button 
+                    onClick={(e) => handleRemoveFriend(friend.uid, e)} 
+                    className="btn-danger" 
+                    style={{ padding: '0.5rem', borderRadius: '50%' }}
+                    title="Remove friend"
+                  >
+                    <UserMinus size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {!loading && friends.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)', background: 'var(--glass-bg)', borderRadius: 'var(--radius-lg)' }}>
-          <User size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-          <p style={{ fontSize: '1.1rem' }}>You haven't added any friends yet.</p>
-          <p style={{ fontSize: '0.9rem' }}>Search for a username above to get started!</p>
-        </div>
+          {!loading && friends.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)', background: 'var(--glass-bg)', borderRadius: 'var(--radius-lg)' }}>
+              <User size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p style={{ fontSize: '1.1rem' }}>คุณยังไม่ได้เพิ่มเพื่อนคนไหนเลย</p>
+              <p style={{ fontSize: '0.9rem' }}>ค้นหาผู้ใช้ข้างบนหรือดูรายชื่อเพื่อนแนะนำเพื่อเพิ่มเพื่อนเลย!</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {activeTab === 'suggested' && (
+        <>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>ยูสเซอร์เพื่อนแนะนำ ({suggestedUsers.length})</h2>
+          
+          {loadingSuggested ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><div className="spinner" /></div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              {suggestedUsers.map(user => (
+                <div 
+                  key={user.uid} 
+                  className="glass-card" 
+                  style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'transform 0.2s, border-color 0.2s' }}
+                  onClick={() => openProfile(user.username)}
+                >
+                  <div style={{ width: 50, height: 50, borderRadius: '50%', background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : 'var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
+                    {!user.avatarUrl && (user.displayName || user.username).charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.displayName || user.username}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@{user.username}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddFriend(undefined, user.username);
+                      }} 
+                      className="btn-primary" 
+                      style={{ padding: '0.5rem 1rem', borderRadius: '99px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    >
+                      <UserPlus size={14} /> เพิ่มเพื่อน
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loadingSuggested && suggestedUsers.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)', background: 'var(--glass-bg)', borderRadius: 'var(--radius-lg)' }}>
+              <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p style={{ fontSize: '1.1rem' }}>ยังไม่มียูสเซอร์ใหม่แนะนำตอนนี้</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
