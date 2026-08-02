@@ -7,7 +7,7 @@ interface Props {
   color?: string;
 }
 
-const CustomTick = ({ payload, x, y, textAnchor }: any) => {
+const CustomTick = ({ payload, x, y, textAnchor, opacity = 1 }: any) => {
   let lines = [payload.value];
   if (typeof payload.value === 'string') {
     if (payload.value.includes('\n')) {
@@ -19,13 +19,22 @@ const CustomTick = ({ payload, x, y, textAnchor }: any) => {
   }
 
   return (
-    <text x={x} y={y} textAnchor={textAnchor} fill="#94a3b8" fontSize={11} fontWeight={500}>
-      {lines.map((line: string, index: number) => (
-        <tspan x={x} dy={index === 0 ? 0 : 14} key={index}>
-          {line}
-        </tspan>
-      ))}
-    </text>
+    <g opacity={opacity}>
+      <text x={x} y={y} textAnchor={textAnchor} fill="none" stroke="#0f1016" strokeWidth={4} strokeLinejoin="round" fontSize={11} fontWeight={600}>
+        {lines.map((line: string, index: number) => (
+          <tspan x={x} dy={index === 0 ? 0 : 14} key={`halo-${index}`}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+      <text x={x} y={y} textAnchor={textAnchor} fill="#f1f5f9" fontSize={11} fontWeight={600}>
+        {lines.map((line: string, index: number) => (
+          <tspan x={x} dy={index === 0 ? 0 : 14} key={`text-${index}`}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
   );
 };
 
@@ -46,30 +55,52 @@ export default function CharacterRadarChart({ stats, size = 280, color = '#7c3ae
   if (data.length === 0) return null;
 
   return (
-    <ResponsiveContainer width="100%" height={size}>
-      <RadarChart data={data}>
-        <PolarGrid stroke="rgba(255,255,255,0.1)" />
-        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-        <Radar
-          name="Stats"
-          dataKey="value"
-          stroke={color}
-          fill={color}
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        <PolarAngleAxis
-          dataKey="subject"
-          tick={<CustomTick />}
-        />
-        <Tooltip
-          contentStyle={{
-            background: '#13131a', border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 8, color: '#f1f5f9', fontSize: 12,
-          }}
-          formatter={(val: any, name: any, props: any) => [`${props.payload.displayValue}`, '']}
-        />
-      </RadarChart>
-    </ResponsiveContainer>
+    <div style={{ position: 'relative', width: '100%', height: size }}>
+      {/* Background layer: Grid, Polygon, Tooltip */}
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
+          <PolarGrid stroke="rgba(255,255,255,0.1)" />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+          <PolarAngleAxis
+            dataKey="subject"
+            tick={<CustomTick opacity={0} />}
+          />
+          <Radar
+            name="Stats"
+            dataKey="value"
+            stroke={color}
+            fill={color}
+            fillOpacity={0.6}
+            strokeWidth={2}
+          />
+          <Tooltip
+            contentStyle={{
+              background: '#13131a', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8, color: '#f1f5f9', fontSize: 12,
+            }}
+            formatter={(val: any, name: any, props: any) => [`${props.payload.displayValue}`, '']}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+
+      {/* Foreground layer: Labels only (so they sit on top of the polygon) */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+            <PolarAngleAxis
+              dataKey="subject"
+              tick={<CustomTick opacity={1} />}
+            />
+            <Radar
+              name="Stats"
+              dataKey="value"
+              stroke="transparent"
+              fill="transparent"
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 }
