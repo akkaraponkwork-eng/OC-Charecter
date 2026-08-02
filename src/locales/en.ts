@@ -47,6 +47,7 @@ const en = {
     makePrimitive: 'Make Private',
     copyLink: 'Copy Link',
     copied: 'Copied!',
+    stories: 'Universe Stories / Locations',
   },
   // Character
   character: {
@@ -61,6 +62,11 @@ const en = {
     deleteConfirm: 'Are you sure you want to delete this character?',
     public: 'Public',
     private: 'Private',
+    biography: 'Biography',
+    personality: 'Personality',
+    radarStats: 'Radar Stats',
+    stories: 'Stories',
+    locked: 'Locked',
   },
   // Profile
   profile: {

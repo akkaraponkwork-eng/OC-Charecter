@@ -47,6 +47,7 @@ const th = {
     makePrimitive: 'ทำเป็นส่วนตัว',
     copyLink: 'คัดลอกลิงก์',
     copied: 'คัดลอกแล้ว!',
+    stories: 'เรื่องราว / สถานที่จักรวาล',
   },
   // Character
   character: {
@@ -61,6 +62,11 @@ const th = {
     deleteConfirm: 'แน่ใจหรือไม่ที่จะลบตัวละครนี้?',
     public: 'สาธารณะ',
     private: 'ส่วนตัว',
+    biography: 'ประวัติย่อ',
+    personality: 'ลักษณะนิสัย',
+    radarStats: 'สถิติพลัง',
+    stories: 'เรื่องราว',
+    locked: 'ล็อคอยู่',
   },
   // Profile
   profile: {

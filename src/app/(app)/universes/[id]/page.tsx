@@ -308,7 +308,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
       {universe.stories && universe.stories.length > 0 && (
         <div style={{ marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Book size={20} /> เนื้อเรื่อง / สถานที่
+            <Book size={20} /> {t('universe.stories')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {universe.stories.filter((s: any) => isOwner || universe.isCollaborator || !s.isLocked).map((story: any) => (
@@ -438,7 +438,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
               {/* Story Logs */}
               <div style={{ marginTop: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <label className="label" style={{ marginBottom: 0 }}>เนื้อเรื่อง / สถานที่</label>
+                  <label className="label" style={{ marginBottom: 0 }}>{t('universe.stories')}</label>
                   <button type="button" onClick={handleAddUniStory} style={{ background: '#f59e0b', color: 'black', border: 'none', padding: '0.4rem 0.75rem', borderRadius: 99, fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
                     + เพิ่มสตอรี่
                   </button>

@@ -6,11 +6,13 @@ import CharacterRadarChart from '@/components/RadarChart';
 import CharacterFormModal from '@/components/CharacterFormModal';
 import { Globe, Book, Tag, BarChart2, Lock, Pencil, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale } from '@/store/useLocale';
 
 export default function CharacterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data: session } = useSession();
   const router = useRouter();
+  const { t } = useLocale();
   const [character, setCharacter] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
@@ -82,9 +84,9 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
           <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.75rem', right: '1.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               {character.isPublic ? (
-                <span className="badge badge-public" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Globe size={14} /> Public</span>
+                <span className="badge badge-public" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Globe size={14} /> {t('character.public')}</span>
               ) : (
-                <span className="badge badge-private" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Lock size={14} /> Private</span>
+                <span className="badge badge-private" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Lock size={14} /> {t('character.private')}</span>
               )}
             </div>
             <h1 style={{ fontSize: '2.25rem', fontWeight: 900 }}>{character.name}</h1>
@@ -95,14 +97,14 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {character.bio && (
               <div className="glass" style={{ padding: '1.5rem' }}>
-                <h2 style={{ fontWeight: 700, marginBottom: '0.75rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Book size={16} /> Biography</h2>
+                <h2 style={{ fontWeight: 700, marginBottom: '0.75rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Book size={16} /> {t('character.biography')}</h2>
                 <p style={{ lineHeight: 1.8, color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{character.bio}</p>
               </div>
             )}
 
             {extra.personality && (
               <div className="glass" style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Personality</h3>
+                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>{t('character.personality')}</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{extra.personality}</p>
               </div>
             )}
@@ -133,7 +135,7 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
 
             {extra.radar?.stats && (
               <div className="glass" style={{ padding: '1.5rem' }}>
-                <h2 style={{ fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><BarChart2 size={16} /> Radar Stats</h2>
+                <h2 style={{ fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><BarChart2 size={16} /> {t('character.radarStats')}</h2>
                 <div style={{ pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
                   <CharacterRadarChart 
                     stats={extra.radar.stats.reduce((acc: any, curr: any) => { acc[curr.label || 'Unknown'] = curr.value; return acc; }, {})} 
@@ -150,14 +152,14 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
         {stories.length > 0 && (
           <div style={{ marginTop: '2rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Stories
+              {t('character.stories')}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {stories.filter((s: any) => isOwner || !s.isLocked).map((story: any) => (
                 <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', position: 'relative' }}>
                   {story.isLocked && (
                     <span style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#f87171', background: 'rgba(248,113,113,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px' }}>
-                      <Lock size={12} /> Locked
+                      <Lock size={12} /> {t('character.locked')}
                     </span>
                   )}
                   <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.5rem', paddingRight: '4rem' }}>{story.title}</h4>
