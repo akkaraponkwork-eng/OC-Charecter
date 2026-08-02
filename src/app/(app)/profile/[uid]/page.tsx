@@ -4,7 +4,8 @@ import { useLocale } from '@/store/useLocale';
 import { useRouter } from 'next/navigation';
 import { generateDmChatId } from '@/lib/auth-helpers';
 import { useSession } from 'next-auth/react';
-import { Lock, MessageCircle, AtSign, Camera, FolderOpen } from 'lucide-react';
+import { Lock, MessageCircle, AtSign, Camera, FolderOpen, UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import { useToast } from '@/store/useToast';
 import { use } from 'react';
 
 export default function PublicProfilePage({ params }: { params: Promise<{ uid: string }> }) {
@@ -12,8 +13,12 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
   const { t } = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isFriend, setIsFriend] = useState(false);
+  const [checkingFriend, setCheckingFriend] = useState(true);
+  const [updatingFriend, setUpdatingFriend] = useState(false);
   const myUid = (session?.user as any)?.uid;
 
   useEffect(() => {
@@ -23,6 +28,48 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
     }).then(data => { setProfile(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [pageUid]);
+
+  useEffect(() => {
+    if (myUid && myUid !== pageUid) {
+      fetch('/api/friends').then(r => r.json()).then(data => {
+        if (Array.isArray(data)) {
+          setIsFriend(data.some((f: any) => f.uid === pageUid));
+        }
+        setCheckingFriend(false);
+      });
+    } else {
+      setCheckingFriend(false);
+    }
+  }, [myUid, pageUid]);
+
+  const handleAddFriend = async () => {
+    if (!profile) return;
+    setUpdatingFriend(true);
+    const res = await fetch('/api/friends', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: profile.username })
+    });
+    setUpdatingFriend(false);
+    if (res.ok) {
+      setIsFriend(true);
+      showToast('Friend added successfully!', 'success');
+    } else {
+      showToast('Failed to add friend', 'error');
+    }
+  };
+
+  const handleRemoveFriend = async () => {
+    if (!confirm('Are you sure you want to remove this friend?')) return;
+    setUpdatingFriend(true);
+    const res = await fetch(`/api/friends?friendId=${pageUid}`, { method: 'DELETE' });
+    setUpdatingFriend(false);
+    if (res.ok) {
+      setIsFriend(false);
+      showToast('Friend removed', 'info');
+    } else {
+      showToast('Failed to remove friend', 'error');
+    }
+  };
 
   const handleDM = () => {
     if (!myUid) return;
@@ -51,9 +98,22 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
             {profile.bio && <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>{profile.bio}</p>}
           </div>
           {myUid && myUid !== pageUid && (
-            <button className="btn-primary" onClick={handleDM} style={{ whiteSpace: 'nowrap', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <MessageCircle size={14} /> {t('profile.sendMessage')}
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={handleDM} style={{ whiteSpace: 'nowrap', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <MessageCircle size={14} /> {t('profile.sendMessage')}
+              </button>
+              {!checkingFriend && (
+                isFriend ? (
+                  <button className="btn-danger" onClick={handleRemoveFriend} disabled={updatingFriend} style={{ whiteSpace: 'nowrap', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    {updatingFriend ? <Loader2 size={14} className="spin" /> : <UserMinus size={14} />} Remove Friend
+                  </button>
+                ) : (
+                  <button className="btn-primary" onClick={handleAddFriend} disabled={updatingFriend} style={{ whiteSpace: 'nowrap', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    {updatingFriend ? <Loader2 size={14} className="spin" /> : <UserPlus size={14} />} Add Friend
+                  </button>
+                )
+              )}
+            </div>
           )}
         </div>
 
