@@ -8,19 +8,36 @@ export async function GET(req: NextRequest) {
   const uid = (session.user as any).uid;
 
   try {
-    const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
     const usersSheet = await getSheet(SHEET_NAMES.USERS);
     const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
+    const groupSheet = await getSheet(SHEET_NAMES.CHAT_GROUPS);
 
     const uniRows = await uniSheet.getCachedRows();
     const collabRows = await collabSheet.getCachedRows();
     const msgRows = await msgSheet.getCachedRows();
     const userRows = await usersSheet.getCachedRows();
+    const groupRows = await groupSheet.getCachedRows();
+
+    const currentUser = userRows.find(r => r.get('uid') === uid);
+    const isAdmin = currentUser?.get('role') === 'admin';
 
     const chats: any[] = [];
 
-    // 1. (Removed: Universe chats no longer appear in global messages list)
+    // 1. Group Chats
+    groupRows.forEach((r) => {
+      const memberIds = JSON.parse(r.get('memberIds') || '[]');
+      if (isAdmin || memberIds.includes(uid)) {
+        chats.push({
+          id: r.get('id'),
+          title: r.get('name'),
+          type: 'group',
+          coverUrl: r.get('coverUrl') || null,
+          memberCount: memberIds.length,
+          isOwner: r.get('ownerId') === uid
+        });
+      }
+    });
 
     // 2. Get DMs
     const dmChats = new Set<string>();

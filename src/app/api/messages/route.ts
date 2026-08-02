@@ -30,6 +30,26 @@ export async function GET(req: NextRequest) {
     if (!isOwner && !isCollab) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  const isGroup = chatId.startsWith('group_');
+  if (isGroup) {
+    const groupSheet = await getSheet(SHEET_NAMES.CHAT_GROUPS);
+    const groups = await groupSheet.getCachedRows();
+    const group = groups.find((r) => r.get('id') === chatId);
+    if (!group) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+
+    const memberIds = JSON.parse(group.get('memberIds') || '[]');
+    
+    // Check if user is admin for stealth mode
+    const usersSheet = await getSheet(SHEET_NAMES.USERS);
+    const userRows = await usersSheet.getCachedRows();
+    const user = userRows.find((r) => r.get('uid') === uid);
+    const isAdmin = user?.get('role') === 'admin';
+
+    if (!memberIds.includes(uid) && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+  }
+
   try {
     const sheet = await getSheet(SHEET_NAMES.MESSAGES);
     const rows = await sheet.getCachedRows();
@@ -59,6 +79,23 @@ export async function POST(req: NextRequest) {
   const resolvedChatId = recipientId ? generateDmChatId(uid, recipientId) : chatId;
   if (!resolvedChatId || !content?.trim())
     return NextResponse.json({ error: 'chatId and content required' }, { status: 400 });
+
+  if (resolvedChatId.startsWith('group_')) {
+    const groupSheet = await getSheet(SHEET_NAMES.CHAT_GROUPS);
+    const groups = await groupSheet.getCachedRows();
+    const group = groups.find((r) => r.get('id') === resolvedChatId);
+    if (!group) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+
+    const memberIds = JSON.parse(group.get('memberIds') || '[]');
+    const usersSheet = await getSheet(SHEET_NAMES.USERS);
+    const userRows = await usersSheet.getCachedRows();
+    const user = userRows.find((r) => r.get('uid') === uid);
+    const isAdmin = user?.get('role') === 'admin';
+
+    if (!memberIds.includes(uid) && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+  }
 
   try {
     const sheet = await getSheet(SHEET_NAMES.MESSAGES);
