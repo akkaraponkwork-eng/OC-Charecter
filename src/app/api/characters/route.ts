@@ -25,17 +25,21 @@ export async function GET(req: NextRequest) {
     const characters = rows
       .filter((r) => {
         if (isAdmin) return true;
+        
+        const charUniverseIds = r.get('universeId') ? r.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [];
+        
         // If searching by universeId
         if (universeId) {
-          return r.get('universeId') === universeId && (r.get('userId') === uid || allowedUniverseIds.includes(universeId));
+          return charUniverseIds.includes(universeId) && (r.get('userId') === uid || allowedUniverseIds.includes(universeId));
         }
         // If no universeId, return all owned characters and collaborated ones
-        return r.get('userId') === uid || allowedUniverseIds.includes(r.get('universeId'));
+        return r.get('userId') === uid || charUniverseIds.some((id: string) => allowedUniverseIds.includes(id));
       })
       .map((r) => ({
         id: r.get('id'),
         userId: r.get('userId'),
         universeId: r.get('universeId'),
+        universeIds: r.get('universeId') ? r.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [],
         name: r.get('name'),
         statsJSON: (() => { try { return JSON.parse(r.get('statsJSON') || '{}'); } catch { return {}; } })(),
         tags: r.get('tags') ? r.get('tags').split(',').map((t: string) => t.trim()) : [],

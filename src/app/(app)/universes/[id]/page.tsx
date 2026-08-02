@@ -146,12 +146,12 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const handleAddExistingCharacter = async (charId: string) => {
     const res = await fetch(`/api/characters/${charId}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ universeId: id }),
+      body: JSON.stringify({ addUniverseId: id }),
     });
     if (res.ok) {
       const char = myAllCharacters.find(c => c.id === charId);
       if (char) {
-        setCharacters([...characters, { ...char, universeId: id }]);
+        setCharacters([...characters, { ...char, universeIds: [...(char.universeIds || []), id] }]);
       }
       setShowSelectChar(false);
       showToast('Character added to universe', 'success');
@@ -162,7 +162,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
     if (!confirm('Are you sure you want to remove this character from the universe? They will remain in your Characters pool.')) return;
     const res = await fetch(`/api/characters/${charId}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ universeId: '' }),
+      body: JSON.stringify({ removeUniverseId: id }),
     });
     if (res.ok) {
       setCharacters(characters.filter(c => c.id !== charId));
@@ -351,10 +351,10 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
 
             <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Or select an existing character:</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-              {myAllCharacters.filter(c => c.universeId !== id && c.userId === uid).length === 0 ? (
+              {myAllCharacters.filter(c => !(c.universeIds || []).includes(id) && c.userId === uid).length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>No available characters to add.</p>
               ) : (
-                myAllCharacters.filter(c => c.universeId !== id && c.userId === uid).map(c => (
+                myAllCharacters.filter(c => !(c.universeIds || []).includes(id) && c.userId === uid).map(c => (
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--glass)', padding: '0.75rem', borderRadius: 'var(--radius)' }}>
                     <div style={{ width: 40, height: 40, borderRadius: '50%', background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'var(--glass-border)' }} />
                     <div style={{ flex: 1 }}>

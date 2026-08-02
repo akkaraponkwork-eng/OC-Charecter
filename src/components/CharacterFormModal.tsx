@@ -98,7 +98,11 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
       ...(useRadar ? { radar: { color: radarColor, stats } } : {})
     };
 
-    const data = { name, imageUrl, bio, statsJSON, universeId };
+    const data: any = { name, imageUrl, bio, statsJSON };
+    if (!initialData && universeId) {
+      data.universeId = universeId;
+    }
+    
     await onSubmit(data);
     setLoading(false);
   };

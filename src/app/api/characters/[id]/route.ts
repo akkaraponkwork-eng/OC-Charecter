@@ -16,6 +16,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       id: row.get('id'),
       userId: row.get('userId'),
       universeId: row.get('universeId'),
+      universeIds: row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [],
       name: row.get('name'),
       statsJSON: (() => { try { return JSON.parse(row.get('statsJSON') || '{}'); } catch { return {}; } })(),
       tags: row.get('tags') ? row.get('tags').split(',').map((t: string) => t.trim()) : [],
@@ -52,7 +53,23 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (body.tags !== undefined) row.set('tags', Array.isArray(body.tags) ? body.tags.join(',') : body.tags);
     if (body.statsJSON !== undefined) row.set('statsJSON', JSON.stringify(body.statsJSON));
     if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
-    if (body.universeId !== undefined) row.set('universeId', body.universeId);
+    
+    // Multiple universes support
+    if (body.addUniverseId) {
+      const currentIds = row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [];
+      if (!currentIds.includes(body.addUniverseId)) {
+        currentIds.push(body.addUniverseId);
+        row.set('universeId', currentIds.join(','));
+      }
+    } else if (body.removeUniverseId) {
+      const currentIds = row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [];
+      const newIds = currentIds.filter((id: string) => id !== body.removeUniverseId);
+      row.set('universeId', newIds.join(','));
+    } else if (body.universeId !== undefined) {
+      // Legacy or direct overwrite
+      row.set('universeId', body.universeId);
+    }
+    
     await row.save();
     clearSheetCache(SHEET_NAMES.CHARACTERS);
 
