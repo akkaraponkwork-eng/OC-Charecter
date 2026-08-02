@@ -4,7 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale } from '@/store/useLocale';
-import { FolderOpen, MessageCircle, Mail, Shield, User, LogOut, Sparkles, Menu, X, Users } from 'lucide-react';
+import { FolderOpen, MessageCircle, Mail, Shield, User, LogOut, Sparkles, Menu, X, Users, Compass } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -78,6 +78,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: <FolderOpen size={16} /> },
+    { href: '/explore', label: 'Explore', icon: <Compass size={16} /> },
     { 
       href: '/messages', label: t('nav.messages'), icon: <MessageCircle size={16} />,
       badge: unreadChatsCount > 0 ? unreadChatsCount : undefined,
