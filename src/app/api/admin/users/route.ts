@@ -121,7 +121,9 @@ export async function DELETE(req: NextRequest) {
     const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
     const msgRows = await msgSheet.getRows();
     for (const r of msgRows) {
-      if (r.get('senderId') === uid || deletedUniIds.includes(r.get('universeId'))) {
+      const chatId = r.get('chatId') || '';
+      const isUniverseMsg = chatId.startsWith('universe_') && deletedUniIds.includes(chatId.replace('universe_', ''));
+      if (r.get('senderId') === uid || isUniverseMsg) {
         await r.delete();
       }
     }

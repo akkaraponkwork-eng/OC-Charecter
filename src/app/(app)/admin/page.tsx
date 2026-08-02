@@ -428,7 +428,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                {['Message ID', 'Universe ID', 'Sender ID', 'Content', 'Created', 'Actions'].map(h => (
+                {['Message ID', 'Chat ID', 'Sender ID', 'Content', 'Created', 'Actions'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -437,7 +437,7 @@ export default function AdminPage() {
               {messages.map(msg => (
                 <tr key={msg.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.id}</td>
-                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.universeId}</td>
+                  <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.chatId}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.senderId}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{msg.content?.substring(0, 50)}{msg.content?.length > 50 ? '...' : ''}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : '—'}</td>

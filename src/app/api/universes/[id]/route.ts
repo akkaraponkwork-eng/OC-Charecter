@@ -72,7 +72,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
     const msgRows = await msgSheet.getRows();
     for (const r of msgRows) {
-      if (r.get('universeId') === id) await r.delete();
+      if (r.get('chatId') === `universe_${id}`) await r.delete();
     }
 
     clearSheetCache(SHEET_NAMES.UNIVERSES);

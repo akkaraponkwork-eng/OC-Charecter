@@ -26,7 +26,7 @@ export async function GET() {
     const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
     const msgRows = await msgSheet.getCachedRows();
     const messages = msgRows.map(r => ({
-      id: r.get('id'), universeId: r.get('universeId'), senderId: r.get('senderId'), 
+      id: r.get('id'), chatId: r.get('chatId'), senderId: r.get('senderId'), 
       content: r.get('content'), createdAt: r.get('createdAt')
     }));
 
