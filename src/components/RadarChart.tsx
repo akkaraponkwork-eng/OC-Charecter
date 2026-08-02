@@ -20,13 +20,6 @@ const CustomTick = ({ payload, x, y, textAnchor, opacity = 1 }: any) => {
 
   return (
     <g opacity={opacity}>
-      <text x={x} y={y} textAnchor={textAnchor} fill="none" stroke="#0f1016" strokeWidth={4} strokeLinejoin="round" fontSize={11} fontWeight={600}>
-        {lines.map((line: string, index: number) => (
-          <tspan x={x} dy={index === 0 ? 0 : 14} key={`halo-${index}`}>
-            {line}
-          </tspan>
-        ))}
-      </text>
       <text x={x} y={y} textAnchor={textAnchor} fill="#f1f5f9" fontSize={11} fontWeight={600}>
         {lines.map((line: string, index: number) => (
           <tspan x={x} dy={index === 0 ? 0 : 14} key={`text-${index}`}>
@@ -68,10 +61,9 @@ export default function CharacterRadarChart({ stats, size = 280, color = '#7c3ae
           <Radar
             name="Stats"
             dataKey="value"
-            stroke={color}
+            stroke="none"
             fill={color}
             fillOpacity={0.6}
-            strokeWidth={2}
           />
           <Tooltip
             contentStyle={{
