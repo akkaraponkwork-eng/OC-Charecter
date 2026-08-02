@@ -9,7 +9,7 @@ import CharacterRadarChart from './RadarChart';
 interface Character {
   id: string; userId: string; name: string; bio: string;
   imageUrl: string; tags: string[]; isPublic: boolean;
-  statsJSON: Record<string, number>;
+  statsJSON: any;
 }
 
 export default function CharacterCard({ character, showOwner }: { character: Character; showOwner?: boolean }) {
