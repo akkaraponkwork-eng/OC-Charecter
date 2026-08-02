@@ -31,6 +31,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const [inviteMsg, setInviteMsg] = useState('');
   const [copied, setCopied] = useState(false);
   const uid = (session?.user as any)?.uid;
+  const isAdmin = (session?.user as any)?.role === 'admin';
 
   // Character form state
   const [charLoading, setCharLoading] = useState(false);
@@ -311,7 +312,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
             <Book size={20} /> {t('universe.stories')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {universe.stories.filter((s: any) => isOwner || universe.isCollaborator || !s.isLocked).map((story: any) => (
+            {universe.stories.filter((s: any) => isOwner || universe.isCollaborator || isAdmin || !s.isLocked).map((story: any) => (
               <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', position: 'relative' }}>
                 {story.isLocked && (
                   <span style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#f87171', background: 'rgba(248,113,113,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px' }}>

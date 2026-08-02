@@ -55,7 +55,7 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
 
   if (!character) return null;
 
-  const isOwner = character.userId === uid || isAdmin;
+  const isOwner = character.userId === uid;
   const extra = character.statsJSON || {};
   const stories = extra.stories || [];
 
@@ -155,7 +155,7 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
               {t('character.stories')}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {stories.filter((s: any) => isOwner || !s.isLocked).map((story: any) => (
+              {stories.filter((s: any) => isOwner || isAdmin || !s.isLocked).map((story: any) => (
                 <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', position: 'relative' }}>
                   {story.isLocked && (
                     <span style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#f87171', background: 'rgba(248,113,113,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px' }}>
