@@ -4,6 +4,32 @@ import { getSheet, SHEET_NAMES, clearSheetCache } from '@/lib/google-sheets';
 
 type Params = { params: Promise<{ id: string }> };
 
+export async function GET(req: NextRequest, { params }: Params) {
+  const { id } = await params;
+  try {
+    const sheet = await getSheet(SHEET_NAMES.CHARACTERS);
+    const rows = await sheet.getCachedRows();
+    const row = rows.find((r) => r.get('id') === id);
+    if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    const character = {
+      id: row.get('id'),
+      userId: row.get('userId'),
+      universeId: row.get('universeId'),
+      name: row.get('name'),
+      statsJSON: (() => { try { return JSON.parse(row.get('statsJSON') || '{}'); } catch { return {}; } })(),
+      tags: row.get('tags') ? row.get('tags').split(',').map((t: string) => t.trim()) : [],
+      imageUrl: row.get('imageUrl'),
+      bio: row.get('bio'),
+      isPublic: row.get('isPublic') === 'true',
+      createdAt: row.get('createdAt'),
+    };
+    return NextResponse.json(character);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: Params) {
   const { id } = await params;
   const session = await auth();
