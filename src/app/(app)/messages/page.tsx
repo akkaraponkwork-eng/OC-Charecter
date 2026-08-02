@@ -1,0 +1,113 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useLocale } from '@/store/useLocale';
+import ChatBox from '@/components/ChatBox';
+import { MessageCircle, Globe } from 'lucide-react';
+
+export default function MessagesPage() {
+  const { data: session } = useSession();
+  const { t } = useLocale();
+  const [chats, setChats] = useState<any[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeChatTitle, setActiveChatTitle] = useState('');
+  const uid = (session?.user as any)?.uid;
+
+  useEffect(() => {
+    const fetchChats = () => {
+      fetch('/api/chats').then(r => r.json()).then(chatsData => {
+        if (!Array.isArray(chatsData)) return;
+        
+        // Add unread flag based on localStorage
+        const enriched = chatsData.map(chat => {
+          let isUnread = false;
+          if (chat.latestMessage) {
+            const lastRead = localStorage.getItem('lastRead_' + chat.id);
+            if (!lastRead || new Date(chat.latestMessage.createdAt) > new Date(lastRead)) {
+              isUnread = true;
+            }
+          }
+          return { ...chat, isUnread };
+        });
+        
+        setChats(enriched);
+      });
+    };
+
+    fetchChats();
+    const interval = setInterval(fetchChats, 10000); // refresh list
+    return () => clearInterval(interval);
+  }, [uid]);
+
+  const openChat = (id: string, title: string) => {
+    setActiveChatId(id); setActiveChatTitle(title);
+  };
+
+  return (
+    <div style={{ height: 'calc(100vh - 60px)', display: 'flex' }}>
+      {/* Sidebar */}
+      <div className={`msg-sidebar ${activeChatId ? 'hidden-mobile' : ''}`}>
+        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--glass-border)', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <MessageCircle size={18} /> {t('chat.title')}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {chats.length === 0 ? (
+            <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.875rem', textAlign: 'center' }}>
+              No conversations yet.<br />Join a Universe to start chatting!
+            </p>
+          ) : (
+            chats.map((chat) => (
+              <button
+                key={chat.id}
+                onClick={() => {
+                  // Mark as read immediately when opening
+                  if (chat.latestMessage) {
+                    localStorage.setItem('lastRead_' + chat.id, new Date().toISOString());
+                    setChats(prev => prev.map(c => c.id === chat.id ? { ...c, isUnread: false } : c));
+                  }
+                  openChat(chat.id, chat.title);
+                }}
+                style={{
+                  display: 'flex', gap: '0.75rem', width: '100%', textAlign: 'left',
+                  padding: '0.875rem 1.25rem', border: 'none', cursor: 'pointer',
+                  background: activeChatId === chat.id ? 'var(--glass)' : 'transparent',
+                  borderLeft: activeChatId === chat.id ? '3px solid var(--primary)' : '3px solid transparent',
+                  transition: 'background 0.15s',
+                }}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: chat.coverUrl ? `url(${chat.coverUrl}) center/cover` : 'var(--glass)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {!chat.coverUrl && (chat.type === 'universe' ? <Globe size={20} /> : <User size={20} />)}
+                </div>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: chat.isUnread ? 700 : 500 }}>{chat.title}</span>
+                    {chat.isUnread && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)' }} />}
+                  </div>
+                  {chat.latestMessage ? (
+                    <div style={{ color: chat.isUnread ? 'var(--text-main)' : 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: chat.isUnread ? 600 : 400 }}>
+                      {chat.latestMessage.senderName}: {chat.latestMessage.content}
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontStyle: 'italic' }}>No messages yet</div>
+                  )}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Chat area */}
+      <div className={`msg-main ${!activeChatId ? 'hidden-mobile' : ''}`}>
+        {activeChatId ? (
+          <ChatBox chatId={activeChatId} title={activeChatTitle} onClose={() => setActiveChatId(null)} />
+        ) : (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexDirection: 'column', gap: '1rem' }}>
+            <MessageCircle size={48} style={{ opacity: 0.5 }} />
+            <p>Select a conversation to start chatting</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

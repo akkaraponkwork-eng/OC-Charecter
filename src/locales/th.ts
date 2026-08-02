@@ -1,0 +1,128 @@
+// Thai locale strings
+const th = {
+  // Navigation
+  nav: {
+    dashboard: 'หน้าหลัก',
+    messages: 'ข้อความ',
+    invitations: 'คำเชิญ',
+    profile: 'โปรไฟล์',
+    admin: 'ผู้ดูแล',
+    logout: 'ออกจากระบบ',
+  },
+  // Auth
+  auth: {
+    signInGoogle: 'เข้าสู่ระบบด้วย Google',
+    signInCredentials: 'เข้าสู่ระบบ',
+    username: 'ชื่อผู้ใช้',
+    password: 'รหัสผ่าน',
+    adminLogin: 'เข้าสู่ระบบผู้ดูแล',
+    invalidCredentials: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+    loggingIn: 'กำลังเข้าสู่ระบบ...',
+    welcomeBack: 'ยินดีต้อนรับกลับ!',
+    tagline: 'สร้างและแบ่งปันตัวละครต้นฉบับของคุณ',
+  },
+  // Dashboard
+  dashboard: {
+    title: 'จักรวาลของฉัน',
+    createUniverse: '+ สร้างจักรวาล',
+    noUniverses: 'ยังไม่มีจักรวาล สร้างจักรวาลแรกของคุณ!',
+    universes: 'จักรวาล',
+    characters: 'ตัวละคร',
+    collaborations: 'การร่วมมือ',
+  },
+  // Universe
+  universe: {
+    name: 'ชื่อจักรวาล',
+    description: 'คำอธิบาย',
+    cover: 'รูปหน้าปก',
+    create: 'สร้างจักรวาล',
+    edit: 'แก้ไขจักรวาล',
+    delete: 'ลบจักรวาล',
+    deleteConfirm: 'แน่ใจหรือไม่ที่จะลบจักรวาลนี้?',
+    addCharacter: '+ เพิ่มตัวละคร',
+    invite: 'เชิญผู้ร่วมสร้าง',
+    collaborators: 'ผู้ร่วมสร้าง',
+    chat: 'แชทจักรวาล',
+    sharePublic: 'แชร์สาธารณะ',
+    makePrimitive: 'ทำเป็นส่วนตัว',
+    copyLink: 'คัดลอกลิงก์',
+    copied: 'คัดลอกแล้ว!',
+  },
+  // Character
+  character: {
+    name: 'ชื่อตัวละคร',
+    bio: 'ประวัติย่อ',
+    tags: 'แท็ก (คั่นด้วยจุลภาค)',
+    stats: 'สถิติตัวละคร',
+    image: 'รูปตัวละคร',
+    create: 'สร้างตัวละคร',
+    edit: 'แก้ไขตัวละคร',
+    delete: 'ลบตัวละคร',
+    deleteConfirm: 'แน่ใจหรือไม่ที่จะลบตัวละครนี้?',
+    public: 'สาธารณะ',
+    private: 'ส่วนตัว',
+  },
+  // Profile
+  profile: {
+    title: 'โปรไฟล์',
+    editProfile: 'แก้ไขโปรไฟล์',
+    displayName: 'ชื่อที่แสดง',
+    username: '@ชื่อผู้ใช้',
+    bio: 'แนะนำตัวเอง',
+    avatar: 'รูปโปรไฟล์',
+    socialLinks: 'ลิงก์โซเชียล',
+    publicProfile: 'โปรไฟล์สาธารณะ',
+    save: 'บันทึก',
+    saving: 'กำลังบันทึก...',
+    deleteAccount: 'ลบบัญชี',
+    deleteConfirm: 'แน่ใจหรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้',
+    sendMessage: 'ส่งข้อความ',
+  },
+  // Chat
+  chat: {
+    title: 'ข้อความ',
+    typeMessage: 'พิมพ์ข้อความ...',
+    send: 'ส่ง',
+    noMessages: 'ยังไม่มีข้อความ เริ่มสนทนากัน!',
+    directMessages: 'ข้อความส่วนตัว',
+    universeChats: 'แชทจักรวาล',
+  },
+  // Invitations
+  invitations: {
+    title: 'คำเชิญ',
+    accept: 'ยอมรับ',
+    decline: 'ปฏิเสธ',
+    noInvitations: 'ไม่มีคำเชิญ',
+    inviteByEmail: 'เชิญด้วยอีเมล',
+    inviteButton: 'ส่งคำเชิญ',
+    pendingInvite: 'รอการตอบรับ',
+  },
+  // Admin
+  admin: {
+    title: 'แผงผู้ดูแล',
+    allUsers: 'ผู้ใช้ทั้งหมด',
+    createUser: 'สร้างผู้ใช้ใหม่',
+    changeRole: 'เปลี่ยนบทบาท',
+    deleteUser: 'ลบผู้ใช้',
+    role: 'บทบาท',
+    user: 'ผู้ใช้',
+    admin: 'ผู้ดูแล',
+  },
+  // Common
+  common: {
+    save: 'บันทึก',
+    cancel: 'ยกเลิก',
+    delete: 'ลบ',
+    edit: 'แก้ไข',
+    create: 'สร้าง',
+    loading: 'กำลังโหลด...',
+    error: 'เกิดข้อผิดพลาด',
+    success: 'สำเร็จ!',
+    public: 'สาธารณะ',
+    private: 'ส่วนตัว',
+    by: 'โดย',
+  },
+};
+
+export default th;
+export type Locale = typeof th;
