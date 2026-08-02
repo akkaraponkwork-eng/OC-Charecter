@@ -117,11 +117,11 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    // 4. Delete messages sent by user
+    // 4. Delete messages sent by user or in their deleted universes
     const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
     const msgRows = await msgSheet.getRows();
     for (const r of msgRows) {
-      if (r.get('senderId') === uid) {
+      if (r.get('senderId') === uid || deletedUniIds.includes(r.get('universeId'))) {
         await r.delete();
       }
     }

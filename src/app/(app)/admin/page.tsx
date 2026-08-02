@@ -97,6 +97,19 @@ export default function AdminPage() {
     showToast('Character deleted!', 'info');
   };
 
+  const handleDeleteSystemData = async (type: string, id: string) => {
+    if (!confirm(`Delete this ${type}?`)) return;
+    const res = await fetch(`/api/admin/system-data?type=${type}&id=${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      if (type === 'universe') setUniverses(universes.filter(u => u.id !== id));
+      else if (type === 'collaboration') setCollaborations(collaborations.filter(c => c.id !== id));
+      else if (type === 'message') setMessages(messages.filter(m => m.id !== id));
+      showToast(`${type} deleted!`, 'info');
+    } else {
+      showToast(`Failed to delete ${type}`, 'error');
+    }
+  };
+
   return (
     <div className="page-container">
       <div className="section-header" style={{ marginBottom: '2rem' }}>
@@ -345,7 +358,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                {['Image', 'Universe Name', 'Creator ID', 'Public', 'Created'].map(h => (
+                {['Image', 'Universe Name', 'Creator ID', 'Public', 'Created', 'Actions'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -364,6 +377,15 @@ export default function AdminPage() {
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{uni.userId}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{uni.isPublic === 'true' ? 'Yes' : 'No'}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{uni.createdAt ? new Date(uni.createdAt).toLocaleDateString() : '—'}</td>
+                  <td style={{ padding: '0.75rem 1.25rem' }}>
+                    <button 
+                      className="btn-danger" 
+                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }} 
+                      onClick={() => handleDeleteSystemData('universe', uni.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -374,7 +396,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                {['Collab ID', 'Universe ID', 'User ID', 'Role', 'Joined At'].map(h => (
+                {['Collab ID', 'Universe ID', 'User ID', 'Role', 'Joined At', 'Actions'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -387,6 +409,15 @@ export default function AdminPage() {
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.userId}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{col.role}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{col.joinedAt ? new Date(col.joinedAt).toLocaleDateString() : '—'}</td>
+                  <td style={{ padding: '0.75rem 1.25rem' }}>
+                    <button 
+                      className="btn-danger" 
+                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }} 
+                      onClick={() => handleDeleteSystemData('collaboration', col.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -397,7 +428,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                {['Message ID', 'Universe ID', 'Sender ID', 'Content', 'Created'].map(h => (
+                {['Message ID', 'Universe ID', 'Sender ID', 'Content', 'Created', 'Actions'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -410,6 +441,15 @@ export default function AdminPage() {
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.senderId}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-main)' }}>{msg.content?.substring(0, 50)}{msg.content?.length > 50 ? '...' : ''}</td>
                   <td style={{ padding: '0.75rem 1.25rem', color: 'var(--text-muted)' }}>{msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : '—'}</td>
+                  <td style={{ padding: '0.75rem 1.25rem' }}>
+                    <button 
+                      className="btn-danger" 
+                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }} 
+                      onClick={() => handleDeleteSystemData('message', msg.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

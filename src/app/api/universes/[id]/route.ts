@@ -53,6 +53,33 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     await row.delete();
+
+    // Cascade: delete characters in this universe
+    const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
+    const charRows = await charSheet.getRows();
+    for (const r of charRows) {
+      if (r.get('universeId') === id) await r.delete();
+    }
+
+    // Cascade: delete collaborations
+    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+    const collabRows = await collabSheet.getRows();
+    for (const r of collabRows) {
+      if (r.get('universeId') === id) await r.delete();
+    }
+
+    // Cascade: delete messages
+    const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
+    const msgRows = await msgSheet.getRows();
+    for (const r of msgRows) {
+      if (r.get('universeId') === id) await r.delete();
+    }
+
+    clearSheetCache(SHEET_NAMES.UNIVERSES);
+    clearSheetCache(SHEET_NAMES.CHARACTERS);
+    clearSheetCache(SHEET_NAMES.COLLABORATIONS);
+    clearSheetCache(SHEET_NAMES.MESSAGES);
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

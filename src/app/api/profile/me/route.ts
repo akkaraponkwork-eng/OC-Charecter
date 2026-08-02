@@ -66,10 +66,34 @@ export async function DELETE() {
     const cRows = await charSheet.getRows();
     for (const r of cRows.filter((r) => r.get('userId') === uid)) await r.delete();
 
-    // Cascade: delete universes
+    // Cascade: delete universes and collect their IDs
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const uniRows = await uniSheet.getRows();
-    for (const r of uniRows.filter((r) => r.get('userId') === uid)) await r.delete();
+    const deletedUniIds: string[] = [];
+    for (const r of uniRows) {
+      if (r.get('userId') === uid) {
+        deletedUniIds.push(r.get('id'));
+        await r.delete();
+      }
+    }
+
+    // Cascade: delete collaborations
+    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+    const collabRows = await collabSheet.getRows();
+    for (const r of collabRows) {
+      if (r.get('userId') === uid || deletedUniIds.includes(r.get('universeId'))) {
+        await r.delete();
+      }
+    }
+
+    // Cascade: delete messages
+    const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
+    const msgRows = await msgSheet.getRows();
+    for (const r of msgRows) {
+      if (r.get('senderId') === uid || deletedUniIds.includes(r.get('universeId'))) {
+        await r.delete();
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

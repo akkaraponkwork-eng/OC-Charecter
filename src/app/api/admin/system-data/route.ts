@@ -35,3 +35,33 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user || (session.user as any).role !== 'admin')
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  const url = new URL(req.url);
+  const type = url.searchParams.get('type');
+  const id = url.searchParams.get('id');
+
+  if (!type || !id) return NextResponse.json({ error: 'Missing type or id' }, { status: 400 });
+
+  try {
+    let sheetName;
+    if (type === 'universe') sheetName = SHEET_NAMES.UNIVERSES;
+    else if (type === 'collaboration') sheetName = SHEET_NAMES.COLLABORATIONS;
+    else if (type === 'message') sheetName = SHEET_NAMES.MESSAGES;
+    else return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+
+    const sheet = await getSheet(sheetName);
+    const rows = await sheet.getRows();
+    const row = rows.find((r) => r.get('id') === id);
+    if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    await row.delete();
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
