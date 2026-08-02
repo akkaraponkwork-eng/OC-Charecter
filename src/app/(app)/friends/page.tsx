@@ -71,7 +71,7 @@ export default function FriendsPage() {
     setAdding(false);
 
     if (res.ok) {
-      showToast('Friend added successfully!', 'success');
+      showToast('ส่งคำขอเป็นเพื่อนเรียบร้อยแล้ว!', 'success');
       if (!targetUsername) setSearchQuery('');
       loadFriends();
       // Remove from suggested list if added from there
