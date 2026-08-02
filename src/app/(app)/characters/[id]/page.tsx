@@ -138,7 +138,10 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
                 <h2 style={{ fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><BarChart2 size={16} /> {t('character.radarStats')}</h2>
                 <div style={{ pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
                   <CharacterRadarChart 
-                    stats={extra.radar.stats.reduce((acc: any, curr: any) => { acc[curr.label || 'Unknown'] = curr.value; return acc; }, {})} 
+                    stats={extra.radar.stats.reduce((acc: any, curr: any) => { 
+                      acc[curr.label || 'Unknown'] = { value: curr.value, breakLimit: curr.breakLimit }; 
+                      return acc; 
+                    }, {})} 
                     size={250} 
                     color={extra.radar.color} 
                   />

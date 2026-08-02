@@ -1,8 +1,8 @@
 'use client';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface Props {
-  stats: Record<string, number>;
+  stats: Record<string, number | { value: number; breakLimit?: boolean }>;
   size?: number;
   color?: string;
 }
@@ -30,17 +30,26 @@ const CustomTick = ({ payload, x, y, textAnchor }: any) => {
 };
 
 export default function CharacterRadarChart({ stats, size = 280, color = '#7c3aed' }: Props) {
-  const data = Object.entries(stats).map(([key, value]) => ({ subject: key, value, fullMark: 100 }));
+  const data = Object.entries(stats).map(([key, val]) => {
+    const isObj = typeof val === 'object' && val !== null;
+    const actualValue = isObj ? (val as any).value : val;
+    const isBreak = isObj ? (val as any).breakLimit : false;
+    
+    return { 
+      subject: key, 
+      value: isBreak ? 130 : actualValue, 
+      displayValue: actualValue,
+      fullMark: 100 
+    };
+  });
+
   if (data.length === 0) return null;
 
   return (
     <ResponsiveContainer width="100%" height={size}>
       <RadarChart data={data}>
         <PolarGrid stroke="rgba(255,255,255,0.1)" />
-        <PolarAngleAxis
-          dataKey="subject"
-          tick={<CustomTick />}
-        />
+        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
         <Radar
           name="Stats"
           dataKey="value"
@@ -49,12 +58,16 @@ export default function CharacterRadarChart({ stats, size = 280, color = '#7c3ae
           fillOpacity={0.3}
           strokeWidth={2}
         />
+        <PolarAngleAxis
+          dataKey="subject"
+          tick={<CustomTick />}
+        />
         <Tooltip
           contentStyle={{
             background: '#13131a', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 8, color: '#f1f5f9', fontSize: 12,
           }}
-          formatter={(val: any) => [`${val}`, '']}
+          formatter={(val: any, name: any, props: any) => [`${props.payload.displayValue}`, '']}
         />
       </RadarChart>
     </ResponsiveContainer>

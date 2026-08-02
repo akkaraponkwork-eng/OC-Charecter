@@ -74,7 +74,7 @@ export default function CharacterCard({ character, showOwner }: { character: Cha
               <div style={{ pointerEvents: 'none' }}>
                 <CharacterRadarChart 
                   stats={character.statsJSON.radar.stats.reduce((acc: any, curr: any) => {
-                    acc[curr.label || 'Unknown'] = curr.value;
+                    acc[curr.label || 'Unknown'] = { value: curr.value, breakLimit: curr.breakLimit };
                     return acc;
                   }, {})} 
                   size={130} 

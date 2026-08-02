@@ -125,11 +125,11 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
     setStats(newStats);
   };
 
-  // Convert stats array to Record<string, number> for the RadarChart component
+  // Convert stats array to Record<string, any> for the RadarChart component
   const radarChartData = stats.reduce((acc, curr) => {
-    acc[curr.label || 'Unknown'] = curr.value;
+    acc[curr.label || 'Unknown'] = { value: curr.value, breakLimit: curr.breakLimit };
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as any);
 
   return (
     <div className="modal-overlay" onClick={onClose} style={{ alignItems: 'flex-start', paddingTop: '2rem', paddingBottom: '2rem', overflowY: 'auto' }}>
@@ -217,15 +217,21 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
                         </div>
                         <input
                           type="number"
+                          min={0}
+                          max={100}
                           value={stat.value}
-                          onChange={(e) => updateStat(i, 'value', Number(e.target.value))}
+                          onChange={(e) => {
+                            let val = Number(e.target.value);
+                            if (val > 100) val = 100;
+                            updateStat(i, 'value', val);
+                          }}
                           style={{ width: 60, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.25rem', borderRadius: 4, textAlign: 'center', fontSize: '0.85rem' }}
                         />
                       </div>
                       <input
                         type="range"
                         min={0}
-                        max={stat.breakLimit ? 999 : 100}
+                        max={100}
                         value={stat.value}
                         onChange={(e) => updateStat(i, 'value', Number(e.target.value))}
                         style={{ width: '100%', accentColor: 'var(--primary)', marginBottom: '0.5rem' }}
