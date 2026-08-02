@@ -9,7 +9,7 @@ export async function GET() {
 
   try {
     const sheet = await getSheet(SHEET_NAMES.CHARACTERS);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const characters = rows.map((r) => ({
       id: r.get('id'),
       universeId: r.get('universeId'),

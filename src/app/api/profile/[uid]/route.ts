@@ -5,7 +5,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
   const { uid } = await params;
   try {
     const sheet = await getSheet(SHEET_NAMES.USERS);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const user = rows.find((r) => r.get('uid') === uid);
 
     if (!user || user.get('isPublic') !== 'true')
@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
 
     // Get public universes count
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
-    const uniRows = await uniSheet.getRows();
+    const uniRows = await uniSheet.getCachedRows();
     const publicUniverses = uniRows.filter(
       (r) => r.get('userId') === uid && r.get('isPublic') === 'true'
     ).map((r) => ({

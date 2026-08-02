@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
   try {
     const sheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
-    const rows = await sheet.getRows();
-    const collabRows = await collabSheet.getRows();
+    const rows = await sheet.getCachedRows();
+    const collabRows = await collabSheet.getCachedRows();
 
     const allowedUniverseIds = collabRows
       .filter((r) => r.get('userId') === uid && r.get('status') === 'accepted')

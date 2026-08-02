@@ -12,7 +12,7 @@ export async function GET() {
 
   try {
     const sheet = await getSheet(SHEET_NAMES.USERS);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const users = rows.map((r) => ({
       uid: r.get('uid'), email: r.get('email'), username: r.get('username'),
       displayName: r.get('displayName'), avatarUrl: r.get('avatarUrl'),

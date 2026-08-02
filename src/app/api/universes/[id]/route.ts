@@ -16,7 +16,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   try {
     const sheet = await getSheet(SHEET_NAMES.UNIVERSES);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const row = rows.find((r) => r.get('id') === id);
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (!isAdmin && row.get('userId') !== uid)

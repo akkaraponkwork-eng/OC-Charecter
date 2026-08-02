@@ -35,7 +35,7 @@ export async function getSheet(title: string): Promise<GoogleSpreadsheetWorkshee
   const getCachedRows = async () => {
     const now = Date.now();
     const cached = rowsCache.get(title);
-    if (cached && (now - cached.time < 5000)) { // 5 second cache
+    if (cached && (now - cached.time < 10000)) { // 10 second cache
       return cached.data;
     }
     const rows = await sheet.getRows();

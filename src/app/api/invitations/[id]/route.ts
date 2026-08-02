@@ -11,7 +11,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const sheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const row = rows.find((r) => r.get('id') === id && r.get('userId') === uid);
     if (!row) return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
 

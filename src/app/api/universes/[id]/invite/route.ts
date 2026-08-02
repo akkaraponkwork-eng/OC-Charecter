@@ -12,9 +12,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const sheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const usersSheet = await getSheet(SHEET_NAMES.USERS);
-    const userRows = await usersSheet.getRows();
+    const userRows = await usersSheet.getCachedRows();
 
     const collabs = rows
       .filter((r) => r.get('universeId') === id && r.get('status') === 'accepted')

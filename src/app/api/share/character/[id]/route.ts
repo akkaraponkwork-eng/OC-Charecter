@@ -5,15 +5,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   try {
     const sheet = await getSheet(SHEET_NAMES.CHARACTERS);
-    const rows = await sheet.getRows();
+    const rows = await sheet.getCachedRows();
     const row = rows.find((r) => r.get('id') === id);
 
-    if (!row || row.get('isPublic') !== 'true')
-      return NextResponse.json({ error: 'Character not found or private' }, { status: 404 });
+    if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (row.get('isPublic') !== 'true') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    // Get creator info
+    // Fetch creator info
     const usersSheet = await getSheet(SHEET_NAMES.USERS);
-    const userRows = await usersSheet.getRows();
+    const userRows = await usersSheet.getCachedRows();
     const creator = userRows.find((u) => u.get('uid') === row.get('userId'));
 
     return NextResponse.json({

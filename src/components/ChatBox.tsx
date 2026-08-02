@@ -39,7 +39,7 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
 
   useEffect(() => {
     fetchMessages();
-    intervalRef.current = setInterval(fetchMessages, 15000);
+    intervalRef.current = setInterval(fetchMessages, 20000);
     return () => clearInterval(intervalRef.current);
   }, [chatId]);
 
