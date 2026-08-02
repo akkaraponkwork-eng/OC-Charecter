@@ -22,12 +22,21 @@ export default function InvitationsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleAction = async (id: string, action: 'accept' | 'decline') => {
+  const handleAction = async (id: string, action: 'accept' | 'decline', type: 'universe' | 'friend' = 'universe') => {
     setProcessing(id);
-    await fetch(`/api/invitations/${id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
-    });
+    
+    if (type === 'friend') {
+      await fetch('/api/friends/requests', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderUid: id, action }),
+      });
+    } else {
+      await fetch(`/api/invitations/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+    }
+    
     setInvitations((prev) => prev.filter((inv) => inv.id !== id));
     setProcessing(null);
     if (action === 'accept') router.refresh();
@@ -50,19 +59,31 @@ export default function InvitationsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {invitations.map((inv) => (
             <div key={inv.id} className="glass" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                background: inv.inviterAvatar ? `url(${inv.inviterAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1rem', fontWeight: 700, color: 'white',
-              }}>
+              <div 
+                style={{
+                  width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                  background: inv.inviterAvatar ? `url(${inv.inviterAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1rem', fontWeight: 700, color: 'white', cursor: inv.type === 'friend' ? 'pointer' : 'default'
+                }}
+                onClick={() => inv.type === 'friend' && router.push(`/share/character/${inv.inviterUsername}`)}
+              >
                 {!inv.inviterAvatar && inv.inviterName[0].toUpperCase()}
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                  <span style={{ color: 'var(--primary-light)' }}>{inv.inviterName}</span>
-                  {' '}invited you to join{' '}
-                  <span style={{ color: 'var(--accent)' }}>{inv.universeName}</span>
+                  <span 
+                    style={{ color: 'var(--primary-light)', cursor: inv.type === 'friend' ? 'pointer' : 'default' }}
+                    onClick={() => inv.type === 'friend' && router.push(`/share/character/${inv.inviterUsername}`)}
+                  >
+                    {inv.inviterName}
+                  </span>
+                  {' '}
+                  {inv.type === 'friend' ? (
+                    'sent you a friend request'
+                  ) : (
+                    <>invited you to join <span style={{ color: 'var(--accent)' }}>{inv.universeName}</span></>
+                  )}
                 </p>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
                   {new Date(inv.createdAt).toLocaleDateString()}
@@ -73,13 +94,13 @@ export default function InvitationsPage() {
                   className="btn-secondary"
                   style={{ padding: '0.4rem 0.875rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   disabled={processing === inv.id}
-                  onClick={() => handleAction(inv.id, 'decline')}
+                  onClick={() => handleAction(inv.id, 'decline', inv.type)}
                 ><X size={16} /> <span suppressHydrationWarning>{t('invitations.decline')}</span></button>
                 <button
                   className="btn-primary"
                   style={{ padding: '0.4rem 0.875rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   disabled={processing === inv.id}
-                  onClick={() => handleAction(inv.id, 'accept')}
+                  onClick={() => handleAction(inv.id, 'accept', inv.type)}
                 ><Check size={16} /> <span suppressHydrationWarning>{t('invitations.accept')}</span></button>
               </div>
             </div>

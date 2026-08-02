@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 import ToastContainer from '@/components/ToastContainer';
+import FloatingChatWidget from '@/components/FloatingChatWidget';
 
 export const metadata: Metadata = {
   title: 'OC Creator — Original Character Studio',
@@ -27,7 +28,10 @@ export default function RootLayout({
       </head>
       <body>
         <div className="mesh-bg" aria-hidden="true" />
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          {children}
+          <FloatingChatWidget />
+        </SessionProvider>
         <ToastContainer />
       </body>
     </html>

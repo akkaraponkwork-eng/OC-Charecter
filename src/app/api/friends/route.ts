@@ -63,9 +63,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Already friends' }, { status: 400 });
     }
 
-    friendIds.push(targetUser.get('uid'));
-    currentUser.set('friends', JSON.stringify(friendIds));
-    await currentUser.save();
+    // Ensure friendRequests column exists
+    if (!sheet.headerValues.includes('friendRequests')) {
+      await sheet.setHeaderRow([...sheet.headerValues, 'friendRequests']);
+    }
+
+    let targetRequests = [];
+    try {
+      const existingReq = targetUser.get('friendRequests');
+      if (existingReq) targetRequests = JSON.parse(existingReq);
+    } catch {}
+
+    if (targetRequests.includes(uid)) {
+      return NextResponse.json({ error: 'Friend request already sent' }, { status: 400 });
+    }
+
+    targetRequests.push(uid);
+    targetUser.set('friendRequests', JSON.stringify(targetRequests));
+    await targetUser.save();
     clearSheetCache(SHEET_NAMES.USERS);
 
     return NextResponse.json({ success: true, friend: {

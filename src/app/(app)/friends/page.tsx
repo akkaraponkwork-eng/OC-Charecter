@@ -6,6 +6,7 @@ import { Search, UserPlus, UserMinus, User, Users, Loader2, ArrowLeft, MessageCi
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale } from '@/store/useLocale';
+import { useStore } from '@/store/useStore';
 
 export default function FriendsPage() {
   const { data: session } = useSession();
@@ -242,7 +243,12 @@ export default function FriendsPage() {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/messages?userId=${friend.uid}`);
+                      if (session?.user) {
+                        const uid = (session.user as any).uid;
+                        const sortedIds = [uid, friend.uid].sort();
+                        const chatId = `dm_${sortedIds[0]}_${sortedIds[1]}`;
+                        useStore.getState().addFloatingChat(chatId, friend.displayName || friend.username);
+                      }
                     }} 
                     className="btn-secondary" 
                     style={{ padding: '0.5rem', borderRadius: '50%' }}

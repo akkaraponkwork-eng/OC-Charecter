@@ -16,6 +16,15 @@ export async function GET() {
     const uniRows = await uniSheet.getCachedRows();
     const userRows = await usersSheet.getCachedRows();
 
+    const currentUser = userRows.find(r => r.get('uid') === uid);
+    let friendRequestUids: string[] = [];
+    if (currentUser) {
+      try {
+        const existingReq = currentUser.get('friendRequests');
+        if (existingReq) friendRequestUids = JSON.parse(existingReq);
+      } catch {}
+    }
+
     const invitations = rows
       .filter((r) => r.get('userId') === uid && r.get('status') === 'pending')
       .map((r) => {
@@ -23,6 +32,7 @@ export async function GET() {
         const inviter = userRows.find((u) => u.get('uid') === r.get('invitedBy'));
         return {
           id: r.get('id'),
+          type: 'universe',
           universeId: r.get('universeId'),
           universeName: uni?.get('name') || 'Unknown Universe',
           inviterName: inviter?.get('displayName') || inviter?.get('username') || 'Unknown',
@@ -31,7 +41,19 @@ export async function GET() {
         };
       });
 
-    return NextResponse.json(invitations);
+    const friendInvitations = friendRequestUids.map(senderUid => {
+      const inviter = userRows.find((u) => u.get('uid') === senderUid);
+      return {
+        id: senderUid, // Use senderUid as the id for friend requests
+        type: 'friend',
+        inviterName: inviter?.get('displayName') || inviter?.get('username') || 'Unknown',
+        inviterAvatar: inviter?.get('avatarUrl') || '',
+        inviterUsername: inviter?.get('username') || '',
+        createdAt: new Date().toISOString(), // We don't store timestamp for now
+      };
+    });
+
+    return NextResponse.json([...invitations, ...friendInvitations]);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
