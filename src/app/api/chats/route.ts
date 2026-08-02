@@ -8,13 +8,10 @@ export async function GET(req: NextRequest) {
   const uid = (session.user as any).uid;
 
   try {
-    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
     const usersSheet = await getSheet(SHEET_NAMES.USERS);
     const msgSheet = await getSheet(SHEET_NAMES.MESSAGES);
     const groupSheet = await getSheet(SHEET_NAMES.CHAT_GROUPS);
 
-    const uniRows = await uniSheet.getCachedRows();
-    const collabRows = await collabSheet.getCachedRows();
     const msgRows = await msgSheet.getCachedRows();
     const userRows = await usersSheet.getCachedRows();
     const groupRows = await groupSheet.getCachedRows();
