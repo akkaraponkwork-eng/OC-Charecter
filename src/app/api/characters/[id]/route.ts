@@ -26,6 +26,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (body.tags !== undefined) row.set('tags', Array.isArray(body.tags) ? body.tags.join(',') : body.tags);
     if (body.statsJSON !== undefined) row.set('statsJSON', JSON.stringify(body.statsJSON));
     if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
+    if (body.universeId !== undefined) row.set('universeId', body.universeId);
     await row.save();
     clearSheetCache(SHEET_NAMES.CHARACTERS);
 

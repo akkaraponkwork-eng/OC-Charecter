@@ -25,7 +25,11 @@ export async function GET(req: NextRequest) {
     const characters = rows
       .filter((r) => {
         if (isAdmin) return true;
-        if (universeId) return r.get('universeId') === universeId && (r.get('userId') === uid || allowedUniverseIds.includes(universeId));
+        // If searching by universeId
+        if (universeId) {
+          return r.get('universeId') === universeId && (r.get('userId') === uid || allowedUniverseIds.includes(universeId));
+        }
+        // If no universeId, return all owned characters and collaborated ones
         return r.get('userId') === uid || allowedUniverseIds.includes(r.get('universeId'));
       })
       .map((r) => ({
@@ -55,28 +59,30 @@ export async function POST(req: NextRequest) {
   const uid = (session.user as any).uid;
   const body = await req.json();
   const { universeId, name, bio, statsJSON, tags, imageUrl } = body;
-  if (!universeId || !name) return NextResponse.json({ error: 'universeId and name required' }, { status: 400 });
+  if (!name) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
 
   try {
-    // Verify access to universe
-    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
-    const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
-    const uniRows = await uniSheet.getRows();
-    const collabRows = await collabSheet.getRows();
-    const universe = uniRows.find((r) => r.get('id') === universeId);
-    if (!universe) return NextResponse.json({ error: 'Universe not found' }, { status: 404 });
+    // Verify access to universe if provided
+    if (universeId) {
+      const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+      const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
+      const uniRows = await uniSheet.getRows();
+      const collabRows = await collabSheet.getRows();
+      const universe = uniRows.find((r) => r.get('id') === universeId);
+      if (!universe) return NextResponse.json({ error: 'Universe not found' }, { status: 404 });
 
-    const isOwner = universe.get('userId') === uid;
-    const isCollaborator = collabRows.some(
-      (r) => r.get('universeId') === universeId && r.get('userId') === uid && r.get('status') === 'accepted'
-    );
-    if (!isOwner && !isCollaborator)
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      const isOwner = universe.get('userId') === uid;
+      const isCollaborator = collabRows.some(
+        (r) => r.get('universeId') === universeId && r.get('userId') === uid && r.get('status') === 'accepted'
+      );
+      if (!isOwner && !isCollaborator)
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const sheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const id = uuidv4();
     await sheet.addRow({
-      id, userId: uid, universeId, name,
+      id, userId: uid, universeId: universeId || '', name,
       statsJSON: JSON.stringify(statsJSON || {}),
       tags: Array.isArray(tags) ? tags.join(',') : (tags || ''),
       imageUrl: imageUrl || '',

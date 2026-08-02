@@ -22,7 +22,7 @@ interface CharacterFormModalProps {
   onClose: () => void;
   onSubmit: (data: any) => Promise<void>;
   initialData?: any;
-  universeId: string;
+  universeId?: string;
 }
 
 const DEFAULT_STATS: Stat[] = [

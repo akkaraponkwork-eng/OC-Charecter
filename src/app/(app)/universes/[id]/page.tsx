@@ -24,6 +24,8 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const [showChat, setShowChat] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showAddChar, setShowAddChar] = useState(false);
+  const [showSelectChar, setShowSelectChar] = useState(false);
+  const [myAllCharacters, setMyAllCharacters] = useState<any[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteMsg, setInviteMsg] = useState('');
@@ -134,6 +136,40 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
     setCharLoading(false);
   };
 
+  const loadMyCharacters = async () => {
+    const res = await fetch('/api/characters');
+    const data = await res.json();
+    if (Array.isArray(data)) setMyAllCharacters(data);
+    setShowSelectChar(true);
+  };
+
+  const handleAddExistingCharacter = async (charId: string) => {
+    const res = await fetch(`/api/characters/${charId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ universeId: id }),
+    });
+    if (res.ok) {
+      const char = myAllCharacters.find(c => c.id === charId);
+      if (char) {
+        setCharacters([...characters, { ...char, universeId: id }]);
+      }
+      setShowSelectChar(false);
+      showToast('Character added to universe', 'success');
+    }
+  };
+
+  const handleRemoveCharacterFromUniverse = async (charId: string) => {
+    if (!confirm('Are you sure you want to remove this character from the universe? They will remain in your Characters pool.')) return;
+    const res = await fetch(`/api/characters/${charId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ universeId: '' }),
+    });
+    if (res.ok) {
+      setCharacters(characters.filter(c => c.id !== charId));
+      showToast('Character removed from universe', 'success');
+    }
+  };
+
   const handleEditUniverse = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await fetch(`/api/universes/${id}`, {
@@ -190,7 +226,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
 
       {/* Action bar */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <button className="btn-primary" onClick={() => { setSelectedCharacter(null); setShowAddChar(true); }} style={{ fontSize: '0.875rem' }}>
+        <button className="btn-primary" onClick={loadMyCharacters} style={{ fontSize: '0.875rem' }}>
           {t('universe.addCharacter')}
         </button>
         {isOwner && (<>
@@ -274,15 +310,65 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
             <div key={c.id} style={{ position: 'relative' }}>
               <CharacterCard character={c} />
               {isOwner && (
-                <button
-                  onClick={() => { setSelectedCharacter(c); setShowAddChar(true); }}
-                  style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}
-                >
-                  <Pencil size={14} />
-                </button>
+                <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: '0.4rem', zIndex: 10 }}>
+                  <button
+                    onClick={() => { setSelectedCharacter(c); setShowAddChar(true); }}
+                    style={{ background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}
+                    title="Edit Character"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleRemoveCharacterFromUniverse(c.id)}
+                    style={{ background: 'rgba(239,68,68,0.8)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}
+                    title="Remove from Universe"
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </div>
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Select Character Modal */}
+      {showSelectChar && (
+        <div className="modal-overlay" onClick={() => setShowSelectChar(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h2 style={{ fontWeight: 700, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Users size={20} /> Add Character to Universe
+              </h2>
+              <button onClick={() => setShowSelectChar(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <button className="btn-secondary" style={{ width: '100%', padding: '1rem', borderStyle: 'dashed' }} onClick={() => { setShowSelectChar(false); setSelectedCharacter(null); setShowAddChar(true); }}>
+                + Create Brand New Character
+              </button>
+            </div>
+
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Or select an existing character:</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              {myAllCharacters.filter(c => c.universeId !== id && c.userId === uid).length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>No available characters to add.</p>
+              ) : (
+                myAllCharacters.filter(c => c.universeId !== id && c.userId === uid).map(c => (
+                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--glass)', padding: '0.75rem', borderRadius: 'var(--radius)' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'var(--glass-border)' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{c.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.bio || 'No bio'}</div>
+                    </div>
+                    <button className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} onClick={() => handleAddExistingCharacter(c.id)}>
+                      Add
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 
