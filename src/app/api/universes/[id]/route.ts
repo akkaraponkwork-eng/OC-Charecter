@@ -26,6 +26,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (body.description !== undefined) row.set('description', body.description);
     if (body.coverUrl !== undefined) row.set('coverUrl', body.coverUrl);
     if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
+    if (body.stories !== undefined) row.set('stories', typeof body.stories === 'string' ? body.stories : JSON.stringify(body.stories));
     await row.save();
     clearSheetCache(SHEET_NAMES.UNIVERSES);
 

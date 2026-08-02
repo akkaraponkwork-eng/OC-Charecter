@@ -8,7 +8,7 @@ import CharacterCard from '@/components/CharacterCard';
 import ChatBox from '@/components/ChatBox';
 import CharacterFormModal from '@/components/CharacterFormModal';
 import ImageUpload from '@/components/ImageUpload';
-import { Lock, Globe, Link, Users, MessageCircle, BarChart2, Copy, Pencil, Trash2, Settings, Check, X, LogOut } from 'lucide-react';
+import { Lock, Globe, Link, Users, MessageCircle, BarChart2, Copy, Pencil, Trash2, Settings, Check, X, LogOut, Book } from 'lucide-react';
 
 const DEFAULT_STATS = { STR: 50, DEX: 50, INT: 50, WIS: 50, CHA: 50, CON: 50 };
 
@@ -41,6 +41,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const [editUniName, setEditUniName] = useState('');
   const [editUniDesc, setEditUniDesc] = useState('');
   const [editUniCover, setEditUniCover] = useState('');
+  const [editUniStories, setEditUniStories] = useState<any[]>([]);
 
   // Edit Character state
   const [editCharId, setEditCharId] = useState<string | null>(null);
@@ -58,6 +59,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
           setEditUniName(uni.name);
           setEditUniDesc(uni.description || '');
           setEditUniCover(uni.coverUrl || '');
+          setEditUniStories(uni.stories || []);
         }
       });
 
@@ -170,14 +172,24 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const handleAddUniStory = () => {
+    setEditUniStories([...editUniStories, { id: Date.now().toString(), title: '', description: '', isLocked: false }]);
+  };
+  const updateUniStory = (id: string, field: string, value: any) => {
+    setEditUniStories(editUniStories.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+  const removeUniStory = (id: string) => {
+    setEditUniStories(editUniStories.filter(s => s.id !== id));
+  };
+
   const handleEditUniverse = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await fetch(`/api/universes/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editUniName, description: editUniDesc, coverUrl: editUniCover }),
+      body: JSON.stringify({ name: editUniName, description: editUniDesc, coverUrl: editUniCover, stories: editUniStories }),
     });
     if (res.ok) {
-      setUniverse({ ...universe, name: editUniName, description: editUniDesc, coverUrl: editUniCover });
+      setUniverse({ ...universe, name: editUniName, description: editUniDesc, coverUrl: editUniCover, stories: editUniStories });
       setShowEditUni(false);
     }
   };
@@ -292,6 +304,30 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
+      {/* Universe Stories Section */}
+      {universe.stories && universe.stories.length > 0 && (
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Book size={20} /> เนื้อเรื่อง / สถานที่
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {universe.stories.filter((s: any) => isOwner || universe.isCollaborator || !s.isLocked).map((story: any) => (
+              <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', position: 'relative' }}>
+                {story.isLocked && (
+                  <span style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#f87171', background: 'rgba(248,113,113,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px' }}>
+                    <Lock size={12} /> Locked
+                  </span>
+                )}
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.5rem', paddingRight: '4rem' }}>{story.title}</h4>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                  {story.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Characters */}
       <div className="section-header">
         <h2 style={{ fontWeight: 700, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -397,6 +433,34 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
               <div>
                 <label className="label">Description</label>
                 <textarea className="input" rows={3} value={editUniDesc} onChange={(e) => setEditUniDesc(e.target.value)} />
+              </div>
+
+              {/* Story Logs */}
+              <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <label className="label" style={{ marginBottom: 0 }}>เนื้อเรื่อง / สถานที่</label>
+                  <button type="button" onClick={handleAddUniStory} style={{ background: '#f59e0b', color: 'black', border: 'none', padding: '0.4rem 0.75rem', borderRadius: 99, fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                    + เพิ่มสตอรี่
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: 300, overflowY: 'auto', paddingRight: '0.5rem' }}>
+                  {editUniStories.map((story) => (
+                    <div key={story.id} style={{ background: '#13141c', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                        <input className="input" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }} value={story.title} onChange={(e) => updateUniStory(story.id, 'title', e.target.value)} placeholder="หัวข้อสตอรี่ / โลเคชั่น" />
+                        <button type="button" 
+                          onClick={() => updateUniStory(story.id, 'isLocked', !story.isLocked)}
+                          style={{ padding: '0.5rem 0.75rem', background: story.isLocked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)', border: story.isLocked ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)', color: story.isLocked ? '#ef4444' : 'var(--text-muted)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}
+                        >
+                          {story.isLocked ? 'ล็อก (เฉพาะคุณที่เห็น)' : 'เปิดสาธารณะ'}
+                        </button>
+                        <button type="button" onClick={() => removeUniStory(story.id)} className="btn-danger" style={{ padding: '0.5rem' }}><Trash2 size={16} /></button>
+                      </div>
+                      <textarea className="input" style={{ padding: '0.5rem', fontSize: '0.85rem', resize: 'vertical' }} rows={2} value={story.description} onChange={(e) => updateUniStory(story.id, 'description', e.target.value)} placeholder="รายละเอียดเนื้อเรื่อง หรือสถานที่สำคัญ..." />
+                    </div>
+                  ))}
+                  {editUniStories.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>ยังไม่มีสตอรี่จักรวาล เพิ่มเรื่องราวของคุณเลย</p>}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '1rem' }}>
                 <button type="button" className="btn-danger" onClick={handleDeleteUniverse} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

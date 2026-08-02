@@ -34,6 +34,7 @@ export async function GET() {
         isPublic: r.get('isPublic') === 'true',
         createdAt: r.get('createdAt'),
         isCollaborator: collabUniverseIds.includes(r.get('id')),
+        stories: r.get('stories') ? JSON.parse(r.get('stories')) : [],
       }));
 
     return NextResponse.json(universes);
@@ -58,9 +59,10 @@ export async function POST(req: NextRequest) {
     await sheet.addRow({
       id, userId: uid, name, description: description || '',
       coverUrl: coverUrl || '', isPublic: 'false',
+      stories: '[]',
       createdAt: new Date().toISOString(),
     });
-    return NextResponse.json({ id, userId: uid, name, description, coverUrl, isPublic: false });
+    return NextResponse.json({ id, userId: uid, name, description, coverUrl, isPublic: false, stories: [] });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
