@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/store/useToast';
-import { Search, UserPlus, UserMinus, User, Loader2, ArrowLeft } from 'lucide-react';
+import { Search, UserPlus, UserMinus, User, Users, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/store/useLocale';
 
