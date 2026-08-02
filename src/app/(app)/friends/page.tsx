@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/store/useToast';
-import { Search, UserPlus, UserMinus, User, Users, Loader2, ArrowLeft } from 'lucide-react';
+import { Search, UserPlus, UserMinus, User, Users, Loader2, ArrowLeft, MessageCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale } from '@/store/useLocale';
 
@@ -10,6 +11,7 @@ export default function FriendsPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const { t } = useLocale();
+  const router = useRouter();
 
   const [friends, setFriends] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,14 +193,27 @@ export default function FriendsPage() {
               <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{friend.displayName || friend.username}</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@{friend.username}</div>
             </div>
-            <button 
-              onClick={(e) => handleRemoveFriend(friend.uid, e)} 
-              className="btn-danger" 
-              style={{ padding: '0.5rem', borderRadius: '50%' }}
-              title="Remove friend"
-            >
-              <UserMinus size={16} />
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/messages?userId=${friend.uid}`);
+                }} 
+                className="btn-secondary" 
+                style={{ padding: '0.5rem', borderRadius: '50%' }}
+                title="Message friend"
+              >
+                <MessageCircle size={16} />
+              </button>
+              <button 
+                onClick={(e) => handleRemoveFriend(friend.uid, e)} 
+                className="btn-danger" 
+                style={{ padding: '0.5rem', borderRadius: '50%' }}
+                title="Remove friend"
+              >
+                <UserMinus size={16} />
+              </button>
+            </div>
           </div>
         ))}
       </div>

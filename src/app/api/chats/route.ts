@@ -20,21 +20,7 @@ export async function GET(req: NextRequest) {
 
     const chats: any[] = [];
 
-    // 1. Get Universes (Owned or Collaborated)
-    const myCollabs = collabRows
-      .filter((r) => r.get('userId') === uid && r.get('status') === 'accepted')
-      .map((r) => r.get('universeId'));
-    
-    uniRows.forEach((r) => {
-      if (r.get('userId') === uid || myCollabs.includes(r.get('id'))) {
-        chats.push({
-          id: `universe_${r.get('id')}`,
-          title: r.get('name'),
-          type: 'universe',
-          coverUrl: r.get('coverUrl') || null,
-        });
-      }
-    });
+    // 1. (Removed: Universe chats no longer appear in global messages list)
 
     // 2. Get DMs
     const dmChats = new Set<string>();

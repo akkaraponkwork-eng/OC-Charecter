@@ -1,16 +1,19 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
+import { useSearchParams } from 'next/navigation';
 import ChatBox from '@/components/ChatBox';
 import { MessageCircle, Globe, User } from 'lucide-react';
 
-export default function MessagesPage() {
+function MessagesContent() {
   const { data: session } = useSession();
   const { t } = useLocale();
   const [chats, setChats] = useState<any[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatTitle, setActiveChatTitle] = useState('');
+  const searchParams = useSearchParams();
+  const userIdFromUrl = searchParams.get('userId');
   const uid = (session?.user as any)?.uid;
 
   useEffect(() => {
@@ -43,6 +46,16 @@ export default function MessagesPage() {
     setActiveChatId(id); setActiveChatTitle(title);
   };
 
+  useEffect(() => {
+    if (userIdFromUrl && uid) {
+      // Sort UIDs alphabetically to form correct dm_id
+      const sortedIds = [uid, userIdFromUrl].sort();
+      const expectedChatId = `dm_${sortedIds[0]}_${sortedIds[1]}`;
+      setActiveChatId(expectedChatId);
+      setActiveChatTitle('Chat'); // Will be updated if user sends a message or when list loads
+    }
+  }, [userIdFromUrl, uid]);
+
   return (
     <div style={{ height: 'calc(100vh - 60px)', display: 'flex' }}>
       {/* Sidebar */}
@@ -53,7 +66,7 @@ export default function MessagesPage() {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {chats.length === 0 ? (
             <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.875rem', textAlign: 'center' }}>
-              No conversations yet.<br />Join a Universe to start chatting!
+              No conversations yet.<br />Add a friend to start chatting!
             </p>
           ) : (
             chats.map((chat) => (
@@ -109,5 +122,13 @@ export default function MessagesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="page-container"><div className="spinner" /></div>}>
+      <MessagesContent />
+    </Suspense>
   );
 }
