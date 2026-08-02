@@ -86,6 +86,7 @@ const en = {
     noMessages: 'No messages yet. Start the conversation!',
     directMessages: 'Direct Messages',
     universeChats: 'Universe Chats',
+    search: 'Search conversations...',
   },
   // Invitations
   invitations: {
