@@ -23,6 +23,8 @@ export default function FriendsPage() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [adding, setAdding] = useState(false);
+  const [searchedUser, setSearchedUser] = useState<any>(null);
+  const [searching, setSearching] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [publicData, setPublicData] = useState<any>(null);
@@ -55,6 +57,22 @@ export default function FriendsPage() {
     setLoadingSuggested(false);
   };
 
+  const handleSearchUser = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setSearching(true);
+    setSearchedUser(null);
+    const res = await fetch(`/api/users/${searchQuery.trim()}/public`);
+    if (res.ok) {
+      const data = await res.json();
+      setSearchedUser(data);
+    } else {
+      showToast('ไม่พบผู้ใช้งานนี้', 'error');
+    }
+    setSearching(false);
+  };
+
   const handleAddFriend = async (e?: React.FormEvent, targetUsername?: string) => {
     if (e) e.preventDefault();
     const usernameToAdd = targetUsername || searchQuery.trim();
@@ -72,7 +90,10 @@ export default function FriendsPage() {
 
     if (res.ok) {
       showToast('ส่งคำขอเป็นเพื่อนเรียบร้อยแล้ว!', 'success');
-      if (!targetUsername) setSearchQuery('');
+      if (!targetUsername) {
+        setSearchQuery('');
+        setSearchedUser(null);
+      }
       loadFriends();
       // Remove from suggested list if added from there
       setSuggestedUsers(suggestedUsers.filter(u => u.username !== usernameToAdd));
@@ -198,24 +219,51 @@ export default function FriendsPage() {
       </div>
 
       <div className="glass" style={{ padding: '1.5rem', marginBottom: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>เพิ่มเพื่อน (ระบุชื่อผู้ใช้)</h2>
-        <form onSubmit={handleAddFriend} style={{ display: 'flex', gap: '1rem' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>เพิ่มเพื่อน (ค้นหาด้วยชื่อผู้ใช้)</h2>
+        <form onSubmit={handleSearchUser} style={{ display: 'flex', gap: '1rem' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
               type="text" 
               className="input" 
-              placeholder="ระบุชื่อผู้ใช้แบบเป๊ะๆ (เช่น สำหรับการเพิ่มแอดมิน)..." 
+              placeholder="ระบุชื่อผู้ใช้เพื่อค้นหาโปรไฟล์..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ paddingLeft: '2.75rem' }}
             />
           </div>
-          <button type="submit" className="btn-primary" disabled={adding} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {adding ? <Loader2 size={18} className="spin" /> : <UserPlus size={18} />}
-            เพิ่ม
+          <button type="submit" className="btn-secondary" disabled={searching} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {searching ? <Loader2 size={18} className="spin" /> : <Search size={18} />}
+            ค้นหา
           </button>
         </form>
+
+        {searchedUser && (
+          <div 
+            className="glass-card" 
+            style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'transform 0.2s', marginTop: '1rem', borderColor: 'var(--primary)' }}
+            onClick={() => setSelectedUser(searchedUser)}
+          >
+            <div style={{ width: 50, height: 50, borderRadius: '50%', background: searchedUser.profile.avatarUrl ? `url(${searchedUser.profile.avatarUrl}) center/cover` : 'var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
+              {!searchedUser.profile.avatarUrl && (searchedUser.profile.displayName || searchedUser.profile.username).charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{searchedUser.profile.displayName || searchedUser.profile.username}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@{searchedUser.profile.username}</div>
+            </div>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddFriend(undefined, searchedUser.profile.username);
+              }} 
+              className="btn-primary" 
+              disabled={adding}
+              style={{ padding: '0.5rem 1rem', borderRadius: '99px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+            >
+              {adding ? <Loader2 size={14} className="spin" /> : <UserPlus size={14} />} เพิ่มเพื่อน
+            </button>
+          </div>
+        )}
       </div>
 
       {activeTab === 'friends' && (

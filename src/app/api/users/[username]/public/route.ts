@@ -13,10 +13,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (targetUser.get('isPublic') !== 'true') {
-      return NextResponse.json({ error: 'This profile is private' }, { status: 403 });
-    }
-
     const uid = targetUser.get('uid');
 
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
