@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
 import ChatBox from '@/components/ChatBox';
-import { MessageCircle, Globe } from 'lucide-react';
+import { MessageCircle, Globe, User } from 'lucide-react';
 
 export default function MessagesPage() {
   const { data: session } = useSession();
