@@ -58,9 +58,9 @@ export default function CharacterRadarChart({ stats, size = 280, color = '#7c3ae
     <div style={{ position: 'relative', width: '100%', height: size }}>
       {/* Background layer: Grid, Polygon, Tooltip */}
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
+        <RadarChart cx="50%" cy="50%" outerRadius="78%" data={data}>
           <PolarGrid stroke="rgba(255,255,255,0.1)" />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+          <PolarRadiusAxis angle={30} domain={[0, 130]} ticks={[20, 40, 60, 80, 100]} tick={false} axisLine={false} />
           <PolarAngleAxis
             dataKey="subject"
             tick={<CustomTick opacity={0} />}
@@ -87,7 +87,7 @@ export default function CharacterRadarChart({ stats, size = 280, color = '#7c3ae
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
-            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} ticks={[20, 40, 60, 80, 100]} tick={false} axisLine={false} />
             <PolarAngleAxis
               dataKey="subject"
               tick={<CustomTick opacity={1} />}
