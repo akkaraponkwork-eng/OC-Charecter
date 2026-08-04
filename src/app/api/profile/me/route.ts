@@ -43,6 +43,10 @@ export async function PUT(req: NextRequest) {
     if (body.socialLinks !== undefined) user.set('socialLinks', JSON.stringify(body.socialLinks));
     if (body.isPublic !== undefined) user.set('isPublic', String(body.isPublic));
     await user.save();
+    
+    // Clear cache so the public profile immediately reflects changes
+    const { clearSheetCache } = await import('@/lib/google-sheets');
+    clearSheetCache(SHEET_NAMES.USERS);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

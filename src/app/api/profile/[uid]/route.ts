@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSheet, SHEET_NAMES } from '@/lib/google-sheets';
+import { auth } from '@/auth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid: string }> }) {
   const { uid } = await params;
@@ -8,7 +9,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const rows = await sheet.getCachedRows();
     const user = rows.find((r) => r.get('uid') === uid);
 
-    if (!user || user.get('isPublic') !== 'true')
+    const session = await auth();
+    const myUid = (session?.user as any)?.uid;
+    const isAdmin = (session?.user as any)?.role === 'admin';
+
+    if (!user || (user.get('isPublic') !== 'true' && user.get('uid') !== myUid && !isAdmin))
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
     // Get ALL universes for this user
@@ -42,6 +47,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       avatarUrl: user.get('avatarUrl'),
       bio: user.get('bio'),
       socialLinks: (() => { try { return JSON.parse(user.get('socialLinks') || '{}'); } catch { return {}; } })(),
+      isPublic: user.get('isPublic') === 'true',
       universes,
       characters,
       createdAt: user.get('createdAt'),
