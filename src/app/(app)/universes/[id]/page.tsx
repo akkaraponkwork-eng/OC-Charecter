@@ -83,13 +83,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const isOwner = universe?.userId === uid;
   const universeChars = characters.filter((c: any) => c.universeId === id);
 
-  const handleTogglePublic = async () => {
-    await fetch(`/api/universes/${universe.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPublic: !universe.isPublic }),
-    });
-    setUniverse({ ...universe, isPublic: !universe.isPublic });
-  };
+
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/share/universe/${id}`);
@@ -248,9 +242,6 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
           {t('universe.addCharacter')}
         </button>
         {isOwner && (<>
-          <button className="btn-secondary" onClick={handleTogglePublic} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            {universe.isPublic ? <Lock size={14} /> : <Globe size={14} />} {universe.isPublic ? t('universe.makePrimitive') : t('universe.sharePublic')}
-          </button>
           <button className="btn-secondary" onClick={handleCopyLink} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Link size={14} /> {copied ? t('universe.copied') : t('universe.copyLink')}
           </button>

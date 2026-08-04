@@ -31,7 +31,7 @@ export async function GET() {
         name: r.get('name'),
         description: r.get('description'),
         coverUrl: r.get('coverUrl'),
-        isPublic: r.get('isPublic') === 'true',
+        isPublic: true,
         createdAt: r.get('createdAt'),
         isCollaborator: collabUniverseIds.includes(r.get('id')),
         stories: r.get('stories') ? JSON.parse(r.get('stories')) : [],
@@ -58,11 +58,11 @@ export async function POST(req: NextRequest) {
     const id = uuidv4();
     await sheet.addRow({
       id, userId: uid, name, description: description || '',
-      coverUrl: coverUrl || '', isPublic: 'false',
+      coverUrl: coverUrl || '', isPublic: 'true',
       stories: '[]',
       createdAt: new Date().toISOString(),
     });
-    return NextResponse.json({ id, userId: uid, name, description, coverUrl, isPublic: false, stories: [] });
+    return NextResponse.json({ id, userId: uid, name, description, coverUrl, isPublic: true, stories: [] });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

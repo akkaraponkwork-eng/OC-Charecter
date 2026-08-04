@@ -13,12 +13,10 @@ export async function GET(req: NextRequest, { params }: Params) {
     const row = rows.find((r) => r.get('id') === id);
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const isPublic = row.get('isPublic') === 'true';
     let isCollaborator = false;
 
     const session = await auth();
     const uid = (session?.user as any)?.uid;
-    const isAdmin = (session?.user as any)?.role === 'admin';
 
     if (uid) {
       const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
@@ -28,11 +26,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       );
     }
 
-    if (!isPublic) {
-      if (row.get('userId') !== uid && !isCollaborator && !isAdmin) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-    }
+
 
     return NextResponse.json({
       id: row.get('id'),
@@ -40,7 +34,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       name: row.get('name'),
       description: row.get('description'),
       coverUrl: row.get('coverUrl'),
-      isPublic,
+      isPublic: true,
       createdAt: row.get('createdAt'),
       isCollaborator,
       stories: row.get('stories') ? JSON.parse(row.get('stories')) : [],

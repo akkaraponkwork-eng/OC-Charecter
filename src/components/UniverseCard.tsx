@@ -25,16 +25,6 @@ export default function UniverseCard({ universe }: { universe: Universe }) {
     removeUniverse(universe.id);
   };
 
-  const togglePublic = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    const newVal = !universe.isPublic;
-    await fetch(`/api/universes/${universe.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPublic: newVal }),
-    });
-    updateUniverse(universe.id, { isPublic: newVal });
-  };
-
   return (
     <Link href={`/universes/${universe.id}`} style={{ textDecoration: 'none' }}>
       <div className="glass card-hover" style={{ overflow: 'hidden', height: '100%', cursor: 'pointer' }}>
@@ -50,10 +40,6 @@ export default function UniverseCard({ universe }: { universe: Universe }) {
             background: 'linear-gradient(to top, rgba(10,10,15,0.8), transparent)',
           }} />
           <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', gap: '0.5rem' }}>
-            <span className={`badge ${universe.isPublic ? 'badge-public' : 'badge-private'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              {universe.isPublic ? <Globe size={12} /> : <Lock size={12} />}
-              {universe.isPublic ? t('common.public') : t('common.private')}
-            </span>
             {universe.isCollaborator && (
               <span className="badge badge-pending" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <Handshake size={12} /> Collab
@@ -73,14 +59,9 @@ export default function UniverseCard({ universe }: { universe: Universe }) {
 
           {isOwner && (
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }} onClick={(e) => e.preventDefault()}>
-              <button className="btn-secondary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
-                onClick={togglePublic}>
-                {universe.isPublic ? <Lock size={14} /> : <Globe size={14} />} 
-                {universe.isPublic ? t('universe.makePrimitive') : t('universe.sharePublic')}
-              </button>
-              <button className="btn-danger" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}
+              <button className="btn-danger" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', flex: 1, justifyContent: 'center' }}
                 onClick={handleDelete}>
-                <Trash2 size={14} />
+                <Trash2 size={14} /> {t('common.delete')}
               </button>
             </div>
           )}

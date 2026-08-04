@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         tags: r.get('tags') ? r.get('tags').split(',').map((t: string) => t.trim()) : [],
         imageUrl: r.get('imageUrl'),
         bio: r.get('bio'),
-        isPublic: r.get('isPublic') === 'true',
+        isPublic: true,
         createdAt: r.get('createdAt'),
       }));
 
@@ -91,11 +91,11 @@ export async function POST(req: NextRequest) {
       tags: Array.isArray(tags) ? tags.join(',') : (tags || ''),
       imageUrl: imageUrl || '',
       bio: bio || '',
-      isPublic: 'false',
+      isPublic: 'true',
       createdAt: new Date().toISOString(),
     });
 
-    return NextResponse.json({ id, userId: uid, universeId, name, statsJSON, tags, imageUrl, bio, isPublic: false });
+    return NextResponse.json({ id, userId: uid, universeId, name, statsJSON, tags, imageUrl, bio, isPublic: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

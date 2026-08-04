@@ -83,34 +83,7 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.95), rgba(10,10,15,0.3))' }} />
           <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.75rem', right: '1.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              {isOwner ? (
-                <button
-                  onClick={async () => {
-                    const res = await fetch(`/api/characters/${id}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ isPublic: !character.isPublic }),
-                    });
-                    if (res.ok) setCharacter({ ...character, isPublic: !character.isPublic });
-                  }}
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                  title="Click to toggle visibility"
-                >
-                  {character.isPublic ? (
-                    <span className="badge badge-public" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Globe size={14} /> {t('character.public')}</span>
-                  ) : (
-                    <span className="badge badge-private" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Lock size={14} /> {t('character.private')}</span>
-                  )}
-                </button>
-              ) : (
-                <>
-                  {character.isPublic ? (
-                    <span className="badge badge-public" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Globe size={14} /> {t('character.public')}</span>
-                  ) : (
-                    <span className="badge badge-private" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Lock size={14} /> {t('character.private')}</span>
-                  )}
-                </>
-              )}
+
             </div>
             <h1 style={{ fontSize: '2.25rem', fontWeight: 900 }}>{character.name}</h1>
           </div>
