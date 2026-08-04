@@ -359,7 +359,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
         <div className="grid-cards">
           {universeChars.map((c: any) => (
             <div key={c.id} style={{ position: 'relative' }}>
-              <CharacterCard character={c} />
+              <CharacterCard character={c} hideDelete />
               {isOwner && (
                 <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: '0.4rem', zIndex: 10 }}>
                   <button

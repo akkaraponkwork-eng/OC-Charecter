@@ -102,11 +102,17 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
     await row.delete();
 
-    // Cascade: delete characters in this universe
+    // Cascade: detach characters from this universe instead of deleting them
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const charRows = await charSheet.getRows();
     for (const r of charRows) {
-      if (r.get('universeId') === id) await r.delete();
+      const uIdsStr = r.get('universeId') || '';
+      const currentIds = uIdsStr.split(',').map((uId: string) => uId.trim()).filter(Boolean);
+      if (currentIds.includes(id)) {
+        const newIds = currentIds.filter((uId: string) => uId !== id);
+        r.set('universeId', newIds.join(','));
+        await r.save();
+      }
     }
 
     // Cascade: delete collaborations

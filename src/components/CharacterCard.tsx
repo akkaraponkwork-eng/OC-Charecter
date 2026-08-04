@@ -12,7 +12,7 @@ interface Character {
   statsJSON: any;
 }
 
-export default function CharacterCard({ character, showOwner }: { character: Character; showOwner?: boolean }) {
+export default function CharacterCard({ character, showOwner, hideDelete }: { character: Character; showOwner?: boolean; hideDelete?: boolean }) {
   const { t } = useLocale();
   const { data: session } = useSession();
   const { removeCharacter, updateCharacter } = useStore();
@@ -100,7 +100,7 @@ export default function CharacterCard({ character, showOwner }: { character: Cha
             </div>
           )}
 
-          {isOwner && (
+          {isOwner && !hideDelete && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
               <button
                 className="btn-danger"
