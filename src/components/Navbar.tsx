@@ -89,7 +89,6 @@ export default function Navbar() {
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
     ...(user?.role?.toLowerCase() === 'admin' ? [{ href: '/admin', label: t('nav.admin'), icon: <Shield size={16} /> }] : []),
-    ...(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'pro' ? [{ href: '/pro', label: 'Pro Hub', icon: <Sparkles size={16} /> }] : []),
   ];
 
   return (

@@ -266,7 +266,6 @@ export default function AdminPage() {
                           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)', borderRadius: 6, color: 'var(--text-main)', padding: '0.4rem 0.75rem', fontSize: '0.85rem', cursor: 'pointer', outline: 'none' }}
                         >
                           <option value="user">User</option>
-                          <option value="pro">Pro User</option>
                           <option value="admin">Admin</option>
                           <option value="banned">Banned</option>
                         </select>
@@ -386,7 +385,6 @@ export default function AdminPage() {
               <div><label className="label">Role</label>
                 <select className="input" value={newRole} onChange={(e) => setNewRole(e.target.value)}>
                   <option value="user">user</option>
-                  <option value="pro">pro</option>
                   <option value="admin">admin</option>
                 </select>
               </div>

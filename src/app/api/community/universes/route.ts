@@ -6,11 +6,6 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const role = (session.user as any).role?.toLowerCase();
-  if (role !== 'pro' && role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
   try {
     const sheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const rows = await sheet.getCachedRows();
