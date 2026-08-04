@@ -16,7 +16,6 @@ export default function MyProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [twitter, setTwitter] = useState('');
   const [instagram, setInstagram] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
   const [toast, setToast] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -28,7 +27,7 @@ export default function MyProfilePage() {
       setAvatarUrl(data.avatarUrl || '');
       setTwitter(data.socialLinks?.twitter || '');
       setInstagram(data.socialLinks?.instagram || '');
-      setIsPublic(data.isPublic ?? true);
+
     });
   }, []);
 
@@ -36,7 +35,7 @@ export default function MyProfilePage() {
     setSaving(true);
     await fetch('/api/profile/me', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ displayName, bio, avatarUrl, isPublic, socialLinks: { twitter, instagram } }),
+      body: JSON.stringify({ displayName, bio, avatarUrl, socialLinks: { twitter, instagram } }),
     });
     await update({ avatarUrl, name: displayName });
     setSaving(false); setEditing(false);
@@ -114,23 +113,7 @@ export default function MyProfilePage() {
           )}
         </div>
 
-        {/* Public toggle */}
-        {editing && (
-          <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('profile.publicProfile')}</label>
-            <button
-              type="button"
-              onClick={() => setIsPublic(!isPublic)}
-              style={{
-                width: 44, height: 24, borderRadius: 99, border: 'none', cursor: 'pointer',
-                background: isPublic ? 'var(--primary)' : 'var(--bg-elevated)',
-                position: 'relative', transition: 'background 0.2s',
-              }}
-            >
-              <div style={{ position: 'absolute', top: 2, left: isPublic ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
-            </button>
-          </div>
-        )}
+
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>

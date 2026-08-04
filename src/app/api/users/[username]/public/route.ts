@@ -15,29 +15,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
 
     const uid = targetUser.get('uid');
 
-    const isUserPublic = targetUser.get('isPublic') === 'true';
-
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const chars = await charSheet.getCachedRows();
-    const publicCharacters = isUserPublic ? chars
+    const publicCharacters = chars
       .filter(r => r.get('userId') === uid)
       .map(r => ({
         id: r.get('id'),
         name: r.get('name'),
         imageUrl: r.get('imageUrl'),
         shortDescription: r.get('shortDescription')
-      })) : [];
+      }));
 
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const unis = await uniSheet.getCachedRows();
-    const publicUniverses = isUserPublic ? unis
+    const publicUniverses = unis
       .filter(r => r.get('userId') === uid)
       .map(r => ({
         id: r.get('id'),
         name: r.get('name'),
         imageUrl: r.get('imageUrl'),
         description: r.get('description')
-      })) : [];
+      }));
 
     return NextResponse.json({
       profile: {

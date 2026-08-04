@@ -80,24 +80,12 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
           <h2 style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FolderOpen size={16} /> Universes</h2>
           <div className="grid-cards">
             {profile.universes.map((u: any) => (
-              u.isPublic ? (
-                <a key={u.id} href={`/universes/${u.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="glass card-hover" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: u.coverUrl ? `url(${u.coverUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))' }} />
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{u.name}</span>
-                  </div>
-                </a>
-              ) : (
-                <div key={u.id} className="glass" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.6, cursor: 'not-allowed' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: u.coverUrl ? `url(${u.coverUrl}) center/cover` : 'var(--glass)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Lock size={20} color="var(--text-muted)" />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>{u.name}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)' }}>Locked (Private)</span>
-                  </div>
+              <a key={u.id} href={`/universes/${u.id}`} style={{ textDecoration: 'none' }}>
+                <div className="glass card-hover" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: u.coverUrl ? `url(${u.coverUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))' }} />
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{u.name}</span>
                 </div>
-              )
+              </a>
             ))}
           </div>
         </div>
@@ -109,24 +97,12 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
           <h2 style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><UserIcon size={16} /> Characters</h2>
           <div className="grid-cards">
             {profile.characters.map((c: any) => (
-              c.isPublic ? (
-                <a key={c.id} href={`/characters/${c.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="glass card-hover" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))' }} />
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{c.name}</span>
-                  </div>
-                </a>
-              ) : (
-                <div key={c.id} className="glass" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.6, cursor: 'not-allowed' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'var(--glass)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Lock size={20} color="var(--text-muted)" />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>{c.name}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)' }}>Locked (Private)</span>
-                  </div>
+              <a key={c.id} href={`/characters/${c.id}`} style={{ textDecoration: 'none' }}>
+                <div className="glass card-hover" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))' }} />
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{c.name}</span>
                 </div>
-              )
+              </a>
             ))}
           </div>
         </div>
