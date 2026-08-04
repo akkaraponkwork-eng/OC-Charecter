@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     const rows = await sheet.getCachedRows();
     
     const users = rows
-      .filter((r) => r.get('isPublic') === 'true')
       .map((r) => ({
         uid: r.get('uid'),
         displayName: r.get('displayName') || r.get('username'),
