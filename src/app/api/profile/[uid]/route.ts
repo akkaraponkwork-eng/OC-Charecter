@@ -11,14 +11,29 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     if (!user || user.get('isPublic') !== 'true')
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
-    // Get public universes count
+    // Get ALL universes for this user
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const uniRows = await uniSheet.getCachedRows();
-    const publicUniverses = uniRows.filter(
-      (r) => r.get('userId') === uid && r.get('isPublic') === 'true'
-    ).map((r) => ({
-      id: r.get('id'), name: r.get('name'), coverUrl: r.get('coverUrl'),
-    }));
+    const universes = uniRows.filter(
+      (r) => r.get('userId') === uid
+    ).map((r) => {
+      const isPublic = r.get('isPublic') === 'true';
+      return {
+        id: r.get('id'), name: r.get('name'), coverUrl: r.get('coverUrl'), isPublic
+      };
+    });
+
+    // Get ALL characters for this user
+    const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
+    const charRows = await charSheet.getCachedRows();
+    const characters = charRows.filter(
+      (r) => r.get('userId') === uid
+    ).map((r) => {
+      const isPublic = r.get('isPublic') === 'true';
+      return {
+        id: r.get('id'), name: r.get('name'), imageUrl: r.get('imageUrl'), isPublic
+      };
+    });
 
     return NextResponse.json({
       uid: user.get('uid'),
@@ -27,7 +42,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       avatarUrl: user.get('avatarUrl'),
       bio: user.get('bio'),
       socialLinks: (() => { try { return JSON.parse(user.get('socialLinks') || '{}'); } catch { return {}; } })(),
-      publicUniverses,
+      universes,
+      characters,
       createdAt: user.get('createdAt'),
     });
   } catch (error: any) {
