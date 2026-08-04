@@ -92,7 +92,7 @@ const th = {
     noMessages: 'ยังไม่มีข้อความ เริ่มสนทนากัน!',
     directMessages: 'ข้อความส่วนตัว',
     universeChats: 'แชทจักรวาล',
-    search: 'ค้นหาชื่อเพื่อน...',
+    search: 'ค้นหาการสนทนา...',
   },
   // Invitations
   invitations: {

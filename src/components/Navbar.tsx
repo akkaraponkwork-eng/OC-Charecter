@@ -4,7 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale } from '@/store/useLocale';
-import { FolderOpen, MessageCircle, Mail, Shield, User, LogOut, Sparkles, Menu, X, Users, Compass } from 'lucide-react';
+import { FolderOpen, MessageCircle, Mail, Shield, User, LogOut, Sparkles, Menu, X, Compass } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -88,7 +88,6 @@ export default function Navbar() {
       href: '/invitations', label: t('nav.invitations'), icon: <Mail size={16} />,
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
-    { href: '/friends', label: 'Friends', icon: <Users size={16} /> },
     ...(user?.role?.toLowerCase() === 'admin' ? [{ href: '/admin', label: t('nav.admin'), icon: <Shield size={16} /> }] : []),
   ];
 

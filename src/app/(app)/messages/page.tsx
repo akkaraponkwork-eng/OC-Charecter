@@ -114,7 +114,7 @@ function MessagesContent() {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {filteredChats.length === 0 ? (
             <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.875rem', textAlign: 'center' }}>
-              {searchQuery ? 'No conversations found.' : <><>No conversations yet.<br />Add a friend to start chatting!</></>}
+              {searchQuery ? 'No conversations found.' : 'No conversations yet.'}
             </p>
           ) : (
             filteredChats.map((chat) => (

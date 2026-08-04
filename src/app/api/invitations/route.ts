@@ -17,13 +17,6 @@ export async function GET() {
     const userRows = await usersSheet.getCachedRows();
 
     const currentUser = userRows.find(r => r.get('uid') === uid);
-    let friendRequestUids: string[] = [];
-    if (currentUser) {
-      try {
-        const existingReq = currentUser.get('friendRequests');
-        if (existingReq) friendRequestUids = JSON.parse(existingReq);
-      } catch {}
-    }
 
     const invitations = rows
       .filter((r) => r.get('userId') === uid && r.get('status') === 'pending')
@@ -41,19 +34,7 @@ export async function GET() {
         };
       });
 
-    const friendInvitations = friendRequestUids.map(senderUid => {
-      const inviter = userRows.find((u) => u.get('uid') === senderUid);
-      return {
-        id: senderUid, // Use senderUid as the id for friend requests
-        type: 'friend',
-        inviterName: inviter?.get('displayName') || inviter?.get('username') || 'Unknown',
-        inviterAvatar: inviter?.get('avatarUrl') || '',
-        inviterUsername: inviter?.get('username') || '',
-        createdAt: new Date().toISOString(), // We don't store timestamp for now
-      };
-    });
-
-    return NextResponse.json([...invitations, ...friendInvitations]);
+    return NextResponse.json(invitations);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

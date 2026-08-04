@@ -22,20 +22,13 @@ export default function InvitationsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleAction = async (id: string, action: 'accept' | 'decline', type: 'universe' | 'friend' = 'universe') => {
+  const handleAction = async (id: string, action: 'accept' | 'decline') => {
     setProcessing(id);
     
-    if (type === 'friend') {
-      await fetch('/api/friends/requests', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderUid: id, action }),
-      });
-    } else {
-      await fetch(`/api/invitations/${id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      });
-    }
+    await fetch(`/api/invitations/${id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    });
     
     setInvitations((prev) => prev.filter((inv) => inv.id !== id));
     setProcessing(null);
@@ -64,26 +57,18 @@ export default function InvitationsPage() {
                   width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
                   background: inv.inviterAvatar ? `url(${inv.inviterAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1rem', fontWeight: 700, color: 'white', cursor: inv.type === 'friend' ? 'pointer' : 'default'
+                  fontSize: '1rem', fontWeight: 700, color: 'white'
                 }}
-                onClick={() => inv.type === 'friend' && router.push(`/share/character/${inv.inviterUsername}`)}
               >
                 {!inv.inviterAvatar && inv.inviterName[0].toUpperCase()}
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                  <span 
-                    style={{ color: 'var(--primary-light)', cursor: inv.type === 'friend' ? 'pointer' : 'default' }}
-                    onClick={() => inv.type === 'friend' && router.push(`/share/character/${inv.inviterUsername}`)}
-                  >
+                  <span style={{ color: 'var(--primary-light)' }}>
                     {inv.inviterName}
                   </span>
                   {' '}
-                  {inv.type === 'friend' ? (
-                    'sent you a friend request'
-                  ) : (
-                    <>invited you to join <span style={{ color: 'var(--accent)' }}>{inv.universeName}</span></>
-                  )}
+                  invited you to join <span style={{ color: 'var(--accent)' }}>{inv.universeName}</span>
                 </p>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
                   {new Date(inv.createdAt).toLocaleDateString()}
@@ -94,13 +79,13 @@ export default function InvitationsPage() {
                   className="btn-secondary"
                   style={{ padding: '0.4rem 0.875rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   disabled={processing === inv.id}
-                  onClick={() => handleAction(inv.id, 'decline', inv.type)}
+                  onClick={() => handleAction(inv.id, 'decline')}
                 ><X size={16} /> <span suppressHydrationWarning>{t('invitations.decline')}</span></button>
                 <button
                   className="btn-primary"
                   style={{ padding: '0.4rem 0.875rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   disabled={processing === inv.id}
-                  onClick={() => handleAction(inv.id, 'accept', inv.type)}
+                  onClick={() => handleAction(inv.id, 'accept')}
                 ><Check size={16} /> <span suppressHydrationWarning>{t('invitations.accept')}</span></button>
               </div>
             </div>
