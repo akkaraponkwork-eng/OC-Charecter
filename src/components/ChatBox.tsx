@@ -24,10 +24,6 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [groupData, setGroupData] = useState<any>(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [inviteUsername, setInviteUsername] = useState('');
-  const [inviteLoading, setInviteLoading] = useState(false);
   const { showToast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout>();
@@ -47,55 +43,12 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
     fetchMessages();
     intervalRef.current = setInterval(fetchMessages, 20000);
 
-    if (chatId.startsWith('group_')) {
-      fetch(`/api/groups/${chatId}`).then(r => r.json()).then(data => {
-        if (!data.error) setGroupData(data);
-      });
-    }
-
     return () => clearInterval(intervalRef.current);
   }, [chatId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteUsername.trim()) return;
-    setInviteLoading(true);
-    const res = await fetch(`/api/groups/${chatId}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: inviteUsername.trim() }),
-    });
-    if (res.ok) {
-      showToast('User invited successfully!', 'success');
-      setInviteUsername('');
-      // refresh group data
-      fetch(`/api/groups/${chatId}`).then(r => r.json()).then(data => {
-        if (!data.error) setGroupData(data);
-      });
-    } else {
-      const data = await res.json();
-      showToast(data.error || 'Failed to invite', 'error');
-    }
-    setInviteLoading(false);
-  };
-
-  const handleKick = async (targetUid: string) => {
-    if (!confirm('Are you sure you want to remove this user?')) return;
-    const res = await fetch(`/api/groups/${chatId}`, {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetUid }),
-    });
-    if (res.ok) {
-      showToast('User removed', 'success');
-      setGroupData({ ...groupData, members: groupData.members.filter((m: any) => m.uid !== targetUid) });
-      if (targetUid === uid) {
-        if (onClose) onClose();
-      }
-    }
-  };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,11 +88,6 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
           <MessageCircle size={16} /> {title}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {chatId.startsWith('group_') && (
-            <button onClick={() => setShowSettings(true)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <Settings size={18} />
-            </button>
-          )}
           {onClose && (
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
           )}
@@ -205,64 +153,6 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
         </button>
       </form>
 
-      {/* Group Settings Modal */}
-      {showSettings && groupData && (
-        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Users size={20} /> Group Settings
-              </h2>
-              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
-            </div>
-            
-            {groupData.ownerId === uid && (
-              <form onSubmit={handleInvite} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <input 
-                  className="input" 
-                  style={{ flex: 1 }} 
-                  value={inviteUsername} 
-                  onChange={e => setInviteUsername(e.target.value)} 
-                  placeholder="Invite by username (e.g. admin)" 
-                  required 
-                />
-                <button type="submit" className="btn-primary" disabled={inviteLoading}>
-                  <UserPlus size={16} /> Invite
-                </button>
-              </form>
-            )}
-
-            <div>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text-muted)' }}>Members ({groupData.members?.length || 0})</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 250, overflowY: 'auto' }}>
-                {groupData.members?.map((m: any) => (
-                  <div key={m.uid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', background: 'var(--glass)', borderRadius: 'var(--radius)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: m.avatarUrl ? `url(${m.avatarUrl}) center/cover` : 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white', fontWeight: 700 }}>
-                        {!m.avatarUrl && (m.displayName?.[0] || m.username?.[0] || '?')}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{m.displayName || m.username}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>@{m.username} {m.uid === groupData.ownerId && '(Owner)'}</div>
-                      </div>
-                    </div>
-                    {groupData.ownerId === uid && m.uid !== uid && (
-                      <button onClick={() => handleKick(m.uid)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: '0.2rem' }}>
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                    {m.uid === uid && groupData.ownerId !== uid && (
-                      <button onClick={() => handleKick(uid)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: '0.2rem', fontSize: '0.8rem' }}>
-                        Leave
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

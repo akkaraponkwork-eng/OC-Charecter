@@ -13,9 +13,6 @@ function MessagesContent() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatTitle, setActiveChatTitle] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [creatingGroup, setCreatingGroup] = useState(false);
   const searchParams = useSearchParams();
   const userIdFromUrl = searchParams.get('userId');
   const uid = (session?.user as any)?.uid;
@@ -46,25 +43,6 @@ function MessagesContent() {
     return () => clearInterval(interval);
   }, [uid]);
 
-  const handleCreateGroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGroupName.trim()) return;
-    setCreatingGroup(true);
-    const res = await fetch('/api/groups', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newGroupName }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setChats(prev => [{ id: data.id, title: data.name, type: 'group', isOwner: true, memberCount: 1, isUnread: false }, ...prev]);
-      setShowCreateGroup(false);
-      setNewGroupName('');
-      openChat(data.id, data.name);
-    }
-    setCreatingGroup(false);
-  };
-
   const openChat = (id: string, title: string) => {
     setActiveChatId(id); setActiveChatTitle(title);
   };
@@ -91,13 +69,6 @@ function MessagesContent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <MessageCircle size={18} /> {t('chat.title')}
           </div>
-          <button 
-            onClick={() => setShowCreateGroup(true)}
-            style={{ background: 'var(--primary)', border: 'none', color: 'white', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-            title="Create Group"
-          >
-            <Plus size={16} />
-          </button>
         </div>
         <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--glass-border)' }}>
           <div style={{ position: 'relative' }}>
@@ -137,7 +108,7 @@ function MessagesContent() {
                 }}
               >
                 <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: chat.coverUrl ? `url(${chat.coverUrl}) center/cover` : 'var(--glass)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {!chat.coverUrl && (chat.type === 'universe' ? <Globe size={20} /> : chat.type === 'group' ? <Users size={20} /> : <User size={20} />)}
+                  {!chat.coverUrl && (chat.type === 'universe' ? <Globe size={20} /> : <User size={20} />)}
                 </div>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -170,38 +141,6 @@ function MessagesContent() {
         )}
       </div>
 
-      {/* Create Group Modal */}
-      {showCreateGroup && (
-        <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Users size={20} /> Create Group Chat
-              </h2>
-              <button onClick={() => setShowCreateGroup(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label className="label">Group Name</label>
-                <input 
-                  className="input" 
-                  value={newGroupName} 
-                  onChange={(e) => setNewGroupName(e.target.value)} 
-                  placeholder="E.g. Adventure Party"
-                  required 
-                  autoFocus
-                />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowCreateGroup(false)} disabled={creatingGroup}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={creatingGroup}>
-                  {creatingGroup ? 'Creating...' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
