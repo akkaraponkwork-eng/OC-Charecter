@@ -17,6 +17,9 @@ export async function GET() {
       name: r.get('name'),
       imageUrl: r.get('imageUrl'),
       createdAt: r.get('createdAt'),
+      bio: r.get('bio') || '',
+      tags: r.get('tags') ? r.get('tags').split(',').map((t: string) => t.trim()) : [],
+      statsJSON: (() => { try { return JSON.parse(r.get('statsJSON') || '{}'); } catch { return {}; } })(),
     }));
 
     return NextResponse.json(characters);
