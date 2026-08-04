@@ -4,6 +4,53 @@ import { getSheet, SHEET_NAMES, clearSheetCache } from '@/lib/google-sheets';
 
 type Params = { params: Promise<{ id: string }> };
 
+// GET /api/universes/[id]
+export async function GET(req: NextRequest, { params }: Params) {
+  const { id } = await params;
+  try {
+    const sheet = await getSheet(SHEET_NAMES.UNIVERSES);
+    const rows = await sheet.getCachedRows();
+    const row = rows.find((r) => r.get('id') === id);
+    if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    const isPublic = row.get('isPublic') === 'true';
+    let isCollaborator = false;
+
+    const session = await auth();
+    const uid = (session?.user as any)?.uid;
+    const isAdmin = (session?.user as any)?.role === 'admin';
+
+    if (uid) {
+      const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+      const collabRows = await collabSheet.getCachedRows();
+      isCollaborator = collabRows.some(
+        (r) => r.get('universeId') === id && r.get('userId') === uid && r.get('status') === 'accepted'
+      );
+    }
+
+    if (!isPublic) {
+      if (row.get('userId') !== uid && !isCollaborator && !isAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    return NextResponse.json({
+      id: row.get('id'),
+      userId: row.get('userId'),
+      name: row.get('name'),
+      description: row.get('description'),
+      coverUrl: row.get('coverUrl'),
+      isPublic,
+      createdAt: row.get('createdAt'),
+      isCollaborator,
+      stories: row.get('stories') ? JSON.parse(row.get('stories')) : [],
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+
 // PUT /api/universes/[id]
 export async function PUT(req: NextRequest, { params }: Params) {
   const { id } = await params;

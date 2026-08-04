@@ -12,6 +12,16 @@ export async function GET(req: NextRequest, { params }: Params) {
     const row = rows.find((r) => r.get('id') === id);
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+    const isPublic = row.get('isPublic') === 'true';
+    if (!isPublic) {
+      const session = await auth();
+      const uid = (session?.user as any)?.uid;
+      const isAdmin = (session?.user as any)?.role === 'admin';
+      if (row.get('userId') !== uid && !isAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     const character = {
       id: row.get('id'),
       userId: row.get('userId'),

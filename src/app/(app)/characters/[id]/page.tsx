@@ -23,7 +23,7 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
     try {
       const res = await fetch(`/api/characters/${id}`);
       if (!res.ok) {
-        if (res.status === 404) router.replace('/characters');
+        if (res.status === 404 || res.status === 403) router.replace('/dashboard');
         return;
       }
       const data = await res.json();

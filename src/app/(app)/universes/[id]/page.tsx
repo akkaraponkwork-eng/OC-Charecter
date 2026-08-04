@@ -51,10 +51,15 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
 
   useEffect(() => {
     // Load universe info
-    fetch('/api/universes')
-      .then(r => r.json())
-      .then(data => {
-        const uni = Array.isArray(data) ? data.find((u: any) => u.id === id) : null;
+    fetch(`/api/universes/${id}`)
+      .then(r => {
+        if (!r.ok) {
+          if (r.status === 404 || r.status === 403) window.location.href = '/dashboard';
+          return null;
+        }
+        return r.json();
+      })
+      .then(uni => {
         if (uni) {
           setUniverse(uni);
           setEditUniName(uni.name);
