@@ -12,7 +12,6 @@ function MessagesContent() {
   const [chats, setChats] = useState<any[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatTitle, setActiveChatTitle] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const searchParams = useSearchParams();
   const userIdFromUrl = searchParams.get('userId');
   const uid = (session?.user as any)?.uid;
@@ -57,9 +56,6 @@ function MessagesContent() {
     }
   }, [userIdFromUrl, uid]);
 
-  const filteredChats = chats.filter(chat => 
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div style={{ height: 'calc(100vh - 60px)', display: 'flex' }}>
@@ -70,25 +66,13 @@ function MessagesContent() {
             <MessageCircle size={18} /> {t('chat.title')}
           </div>
         </div>
-        <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--glass-border)' }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder={t('chat.search') || 'Search conversations...'} 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem 0.75rem 0.5rem 2.25rem', borderRadius: '20px', border: '1px solid var(--glass-border)', background: 'var(--glass)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
-            />
-          </div>
-        </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {filteredChats.length === 0 ? (
+          {chats.length === 0 ? (
             <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.875rem', textAlign: 'center' }}>
-              {searchQuery ? 'No conversations found.' : 'No conversations yet.'}
+              No conversations yet.
             </p>
           ) : (
-            filteredChats.map((chat) => (
+            chats.map((chat) => (
               <button
                 key={chat.id}
                 onClick={() => {
