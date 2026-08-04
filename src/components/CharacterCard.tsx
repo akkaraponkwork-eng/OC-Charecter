@@ -15,9 +15,21 @@ interface Character {
 export default function CharacterCard({ character, showOwner }: { character: Character; showOwner?: boolean }) {
   const { t } = useLocale();
   const { data: session } = useSession();
-  const { removeCharacter } = useStore();
+  const { removeCharacter, updateCharacter } = useStore();
   const uid = (session?.user as any)?.uid;
   const isOwner = character.userId === uid;
+
+  const togglePublic = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isOwner) return;
+    const newVal = !character.isPublic;
+    updateCharacter(character.id, { isPublic: newVal });
+    await fetch(`/api/characters/${character.id}`, { 
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isPublic: newVal })
+    });
+  };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,10 +51,14 @@ export default function CharacterCard({ character, showOwner }: { character: Cha
           position: 'relative',
         }}>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.9), transparent 60%)' }} />
-          <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', gap: '0.4rem' }}>
-            <span className={`badge ${character.isPublic ? 'badge-public' : 'badge-private'}`} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center' }}>
+          <div style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', display: 'flex', gap: '0.4rem', zIndex: 10 }}>
+            <button
+              onClick={togglePublic}
+              className={`badge ${character.isPublic ? 'badge-public' : 'badge-private'}`}
+              style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', border: 'none', cursor: isOwner ? 'pointer' : 'default', padding: '0.3rem 0.6rem' }}
+            >
               {character.isPublic ? <Globe size={12} /> : <Lock size={12} />}
-            </span>
+            </button>
           </div>
           <div style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', right: '0.75rem' }}>
             <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.25rem' }}>{character.name}</h3>

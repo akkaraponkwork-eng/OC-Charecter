@@ -11,7 +11,7 @@ import Link from 'next/link';
 export default function CharactersPage() {
   const { data: session } = useSession();
   const { t } = useLocale();
-  const [characters, setCharacters] = useState<any[]>([]);
+  const { characters, setCharacters, addCharacter, updateCharacter } = useStore();
   const [loading, setLoading] = useState(true);
   const [showAddChar, setShowAddChar] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
@@ -34,7 +34,7 @@ export default function CharactersPage() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        setCharacters(characters.map((c: any) => c.id === selectedCharacter.id ? { ...c, ...data } : c));
+        updateCharacter(selectedCharacter.id, data);
         setShowAddChar(false);
         setSelectedCharacter(null);
       }
@@ -46,7 +46,7 @@ export default function CharactersPage() {
       });
       const newChar = await res.json();
       if (res.ok) {
-        setCharacters([newChar, ...characters]);
+        addCharacter(newChar);
         setShowAddChar(false);
       }
     }
