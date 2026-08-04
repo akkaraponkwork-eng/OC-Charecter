@@ -79,7 +79,6 @@ export default function Navbar() {
   const navLinks = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: <FolderOpen size={16} /> },
     { href: '/characters', label: 'Characters', icon: <User size={16} /> },
-    { href: '/explore', label: 'Explore', icon: <Compass size={16} /> },
     { 
       href: '/messages', label: t('nav.messages'), icon: <MessageCircle size={16} />,
       badge: unreadChatsCount > 0 ? unreadChatsCount : undefined,
