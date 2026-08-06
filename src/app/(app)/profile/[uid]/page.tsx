@@ -80,7 +80,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
           <h2 style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FolderOpen size={16} /> Universes</h2>
           <div className="grid-cards">
             {profile.universes.map((u: any) => (
-              <a key={u.id} href={`/universes/${u.id}`} style={{ textDecoration: 'none' }}>
+              <a key={u.id} href={myUid === pageUid ? `/universes/${u.id}` : `/share/universe/${u.id}`} style={{ textDecoration: 'none' }}>
                 <div className="glass card-hover" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: u.coverUrl ? `url(${u.coverUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))' }} />
                   <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{u.name}</span>
@@ -97,7 +97,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
           <h2 style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><UserIcon size={16} /> Characters</h2>
           <div className="grid-cards">
             {profile.characters.map((c: any) => (
-              <a key={c.id} href={`/characters/${c.id}`} style={{ textDecoration: 'none' }}>
+              <a key={c.id} href={myUid === pageUid ? `/characters/${c.id}` : `/share/character/${c.id}`} style={{ textDecoration: 'none' }}>
                 <div className="glass card-hover" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ width: 48, height: 48, borderRadius: 'var(--radius)', flexShrink: 0, background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))' }} />
                   <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{c.name}</span>

@@ -29,7 +29,7 @@ export default function CharacterCard({ character, showOwner, hideDelete }: { ch
   const topStats = Object.entries(character.statsJSON || {}).slice(0, 3);
 
   return (
-    <Link href={`/characters/${character.id}`} style={{ textDecoration: 'none' }}>
+    <Link href={isOwner ? `/characters/${character.id}` : `/share/character/${character.id}`} style={{ textDecoration: 'none' }}>
       <div className="glass card-hover" style={{ overflow: 'hidden', height: '100%' }}>
         {/* Image */}
         <div style={{

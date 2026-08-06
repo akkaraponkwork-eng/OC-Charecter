@@ -26,7 +26,7 @@ export default function UniverseCard({ universe }: { universe: Universe }) {
   };
 
   return (
-    <Link href={`/universes/${universe.id}`} style={{ textDecoration: 'none' }}>
+    <Link href={isOwner ? `/universes/${universe.id}` : `/share/universe/${universe.id}`} style={{ textDecoration: 'none' }}>
       <div className="glass card-hover" style={{ overflow: 'hidden', height: '100%', cursor: 'pointer' }}>
         {/* Cover */}
         <div style={{
