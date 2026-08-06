@@ -85,10 +85,7 @@ export default async function PublicCharacterPage({ params }: { params: Promise<
                 </div>
               </div>
             )}
-          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {(extra.age || extra.gender || extra.height || extra.weight) && (
               <div className="glass" style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
                 {extra.age && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Age</div><div style={{ fontWeight: 600 }}>{extra.age}</div></div>}
                 {extra.gender && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</div><div style={{ fontWeight: 600 }}>{extra.gender}</div></div>}
@@ -96,24 +93,29 @@ export default async function PublicCharacterPage({ params }: { params: Promise<
                 {extra.weight && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Weight</div><div style={{ fontWeight: 600 }}>{extra.weight}</div></div>}
               </div>
             )}
-
-            {extra.radar?.stats && (
-              <div className="glass" style={{ padding: '1.5rem' }}>
-                <h2 style={{ fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><BarChart2 size={16} /> Radar Stats</h2>
-                <div style={{ pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
-                  <CharacterRadarChart 
-                    stats={extra.radar.stats.reduce((acc: any, curr: any) => { 
-                      acc[curr.label || 'Unknown'] = { value: curr.value, breakLimit: curr.breakLimit }; 
-                      return acc; 
-                    }, {})} 
-                    size={250} 
-                    color={extra.radar.color} 
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Radar Stats Section */}
+        {extra.radar?.stats && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+            <div className="glass" style={{ padding: '1.5rem', width: '100%', maxWidth: 450 }}>
+              <h2 style={{ fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                <BarChart2 size={16} /> Radar Stats
+              </h2>
+              <div style={{ pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
+                <CharacterRadarChart 
+                  stats={extra.radar.stats.reduce((acc: any, curr: any) => { 
+                    acc[curr.label || 'Unknown'] = { value: curr.value, breakLimit: curr.breakLimit }; 
+                    return acc; 
+                  }, {})} 
+                  size={250} 
+                  color={extra.radar.color} 
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Relationships Section */}
         {extra.useRelations && extra.relations && extra.relations.length > 0 && (
