@@ -11,13 +11,13 @@ interface Story {
   isLocked: boolean;
 }
 
-export default function StoryCard({ story, targetId, type, isOwner = false }: { story: Story, targetId: string, type: 'universe' | 'character', isOwner?: boolean }) {
+export default function StoryCard({ story, targetId, type, isOwner = false, collapsible = true }: { story: Story, targetId: string, type: 'universe' | 'character', isOwner?: boolean, collapsible?: boolean }) {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const isAdmin = (session?.user as any)?.role === 'admin';
   
-  // For unlocked stories (and owner), we start collapsed
-  const [isExpanded, setIsExpanded] = useState(false);
+  // For unlocked stories (and owner), we start collapsed if collapsible is true
+  const [isExpanded, setIsExpanded] = useState(collapsible ? false : true);
   
   // For locked stories that admin reveals
   const [isRevealed, setIsRevealed] = useState(isOwner);
@@ -28,7 +28,7 @@ export default function StoryCard({ story, targetId, type, isOwner = false }: { 
     e.stopPropagation(); // prevent accordion toggle
     if (isRevealed) {
       setIsRevealed(false);
-      setIsExpanded(false);
+      if (collapsible) setIsExpanded(false);
       return;
     }
 
@@ -65,6 +65,8 @@ export default function StoryCard({ story, targetId, type, isOwner = false }: { 
   };
 
   const toggleExpand = () => {
+    if (!collapsible) return;
+    
     if (story.isLocked && !isRevealed) {
       if (!isAdmin) {
         showToast('This story is locked by the creator.', 'error');
@@ -82,10 +84,10 @@ export default function StoryCard({ story, targetId, type, isOwner = false }: { 
         border: '1px solid var(--glass-border)', 
         borderRadius: 'var(--radius-md)', 
         padding: '1.25rem',
-        cursor: (story.isLocked && !isRevealed) ? (isAdmin ? 'default' : 'not-allowed') : 'pointer',
+        cursor: collapsible ? ((story.isLocked && !isRevealed) ? (isAdmin ? 'default' : 'not-allowed') : 'pointer') : 'default',
         transition: 'all 0.2s ease'
       }}
-      className={(!story.isLocked || isRevealed) ? "card-hover" : ""}
+      className={(collapsible && (!story.isLocked || isRevealed)) ? "card-hover" : ""}
     >
       <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: (story.isLocked && !isRevealed) ? 'var(--text-muted)' : 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
