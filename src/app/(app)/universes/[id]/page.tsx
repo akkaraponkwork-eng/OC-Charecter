@@ -9,6 +9,7 @@ import ChatBox from '@/components/ChatBox';
 import CharacterFormModal from '@/components/CharacterFormModal';
 import ImageUpload from '@/components/ImageUpload';
 import StoryCard from '@/components/StoryCard';
+import FeaturedAvatarList from '@/components/FeaturedAvatarList';
 import { Lock, Globe, Link, Users, MessageCircle, BarChart2, Copy, Pencil, Trash2, Settings, Check, X, LogOut, Book } from 'lucide-react';
 
 const DEFAULT_STATS = { STR: 50, DEX: 50, INT: 50, WIS: 50, CHA: 50, CON: 50 };
@@ -44,6 +45,8 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const [editUniDesc, setEditUniDesc] = useState('');
   const [editUniCover, setEditUniCover] = useState('');
   const [editUniStories, setEditUniStories] = useState<any[]>([]);
+  const [editFeaturedTitle, setEditFeaturedTitle] = useState('ตัวละครหลัก');
+  const [editFeaturedChars, setEditFeaturedChars] = useState<any[]>([]);
 
   // Edit Character state
   const [editCharId, setEditCharId] = useState<string | null>(null);
@@ -67,6 +70,8 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
           setEditUniDesc(uni.description || '');
           setEditUniCover(uni.coverUrl || '');
           setEditUniStories(uni.stories || []);
+          setEditFeaturedTitle(uni.featuredTitle || 'ตัวละครหลัก');
+          setEditFeaturedChars(uni.featuredCharacters || []);
         }
       });
 
@@ -185,12 +190,20 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
 
   const handleEditUniverse = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { 
+      name: editUniName, 
+      description: editUniDesc, 
+      coverUrl: editUniCover, 
+      stories: editUniStories,
+      featuredTitle: editFeaturedTitle,
+      featuredCharacters: editFeaturedChars
+    };
     const res = await fetch(`/api/universes/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editUniName, description: editUniDesc, coverUrl: editUniCover, stories: editUniStories }),
+      body: JSON.stringify(payload),
     });
     if (res.ok) {
-      setUniverse({ ...universe, name: editUniName, description: editUniDesc, coverUrl: editUniCover, stories: editUniStories });
+      setUniverse({ ...universe, ...payload });
       setShowEditUni(false);
     }
   };
@@ -304,6 +317,17 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
         </div>
+      )}
+
+      {/* Featured Characters Section */}
+      {universe.featuredCharacters && universe.featuredCharacters.length > 0 && (
+        <FeaturedAvatarList 
+          title={universe.featuredTitle || 'ตัวละครหลัก'}
+          characters={universe.featuredCharacters.map((fc: any) => {
+            const char = universeChars.find((c: any) => c.id === fc.id);
+            return char ? { ...char, role: fc.role } : null;
+          }).filter(Boolean)} 
+        />
       )}
 
       {/* Universe Stories Section */}
@@ -433,6 +457,39 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
                 <textarea className="input" rows={3} value={editUniDesc} onChange={(e) => setEditUniDesc(e.target.value)} />
               </div>
 
+              {/* Featured Characters Edit */}
+              <div style={{ marginTop: '0.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '1rem' }}>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--primary)' }}>แนะนำตัวละคร / ตัวละครหลัก</h3>
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <input className="input" value={editFeaturedTitle} onChange={(e) => setEditFeaturedTitle(e.target.value)} placeholder="หัวข้อ (เช่น แนะนำตัวละคร)" />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {editFeaturedChars.map((fc, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <select className="input" style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }} value={fc.id} onChange={(e) => {
+                        const newChars = [...editFeaturedChars];
+                        newChars[idx].id = e.target.value;
+                        setEditFeaturedChars(newChars);
+                      }}>
+                        <option value="">-- เลือกตัวละคร --</option>
+                        {universeChars.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                      <input className="input" style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }} placeholder="บทบาท (ไม่บังคับ)" value={fc.role || ''} onChange={(e) => {
+                        const newChars = [...editFeaturedChars];
+                        newChars[idx].role = e.target.value;
+                        setEditFeaturedChars(newChars);
+                      }} />
+                      <button type="button" onClick={() => setEditFeaturedChars(editFeaturedChars.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setEditFeaturedChars([...editFeaturedChars, { id: '', role: '' }])} style={{ background: 'rgba(124,58,237,0.1)', color: 'var(--primary)', border: '1px dashed var(--primary)', padding: '0.5rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginTop: '0.5rem' }}>
+                    + เพิ่มตัวละครแนะนำ
+                  </button>
+                </div>
+              </div>
+
               {/* Story Logs */}
               <div style={{ marginTop: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -454,7 +511,31 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
                         </button>
                         <button type="button" onClick={() => removeUniStory(story.id)} className="btn-danger" style={{ padding: '0.5rem' }}><Trash2 size={16} /></button>
                       </div>
-                      <textarea className="input" style={{ padding: '0.5rem', fontSize: '0.85rem', resize: 'vertical' }} rows={2} value={story.description} onChange={(e) => updateUniStory(story.id, 'description', e.target.value)} placeholder="รายละเอียดเนื้อเรื่อง หรือสถานที่สำคัญ..." />
+                      <textarea className="input" style={{ padding: '0.5rem', fontSize: '0.85rem', resize: 'vertical', marginBottom: '0.75rem' }} rows={2} value={story.description} onChange={(e) => updateUniStory(story.id, 'description', e.target.value)} placeholder="รายละเอียดเนื้อเรื่อง หรือสถานที่สำคัญ..." />
+                      
+                      {/* Characters in Story */}
+                      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.1)' }}>
+                        <input className="input" style={{ width: '100%', padding: '0.4rem', fontSize: '0.8rem', marginBottom: '0.5rem', background: 'rgba(0,0,0,0.2)' }} value={story.charactersTitle || ''} onChange={(e) => updateUniStory(story.id, 'charactersTitle', e.target.value)} placeholder="หัวข้อตัวละคร (เช่น ตัวละครในตอนนี้)" />
+                        {(story.characters || []).map((sc: any, scIdx: number) => (
+                          <div key={scIdx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                            <select className="input" style={{ flex: 1, padding: '0.3rem', fontSize: '0.75rem', height: 28 }} value={sc.id} onChange={(e) => {
+                              const newChars = [...(story.characters || [])];
+                              newChars[scIdx].id = e.target.value;
+                              updateUniStory(story.id, 'characters', newChars);
+                            }}>
+                              <option value="">-- เลือก --</option>
+                              {universeChars.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                            <input className="input" style={{ flex: 1, padding: '0.3rem', fontSize: '0.75rem', height: 28 }} placeholder="บทบาท" value={sc.role || ''} onChange={(e) => {
+                              const newChars = [...(story.characters || [])];
+                              newChars[scIdx].role = e.target.value;
+                              updateUniStory(story.id, 'characters', newChars);
+                            }} />
+                            <button type="button" onClick={() => updateUniStory(story.id, 'characters', (story.characters || []).filter((_: any, i: number) => i !== scIdx))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={14} /></button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => updateUniStory(story.id, 'characters', [...(story.characters || []), { id: '', role: '' }])} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}>+ เพิ่มตัวละครในตอน</button>
+                      </div>
                     </div>
                   ))}
                   {editUniStories.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>ยังไม่มีสตอรี่จักรวาล เพิ่มเรื่องราวของคุณเลย</p>}

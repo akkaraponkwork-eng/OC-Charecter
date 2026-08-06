@@ -20,6 +20,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     let rawDesc = row.get('description') || '';
     let cleanDesc = rawDesc;
     let parsedStories = [];
+    let parsedFeatured = null;
+
+    if (rawDesc.includes('---FEATURED---')) {
+      const parts = rawDesc.split('---FEATURED---');
+      rawDesc = parts[0];
+      try { parsedFeatured = JSON.parse(parts[1]); } catch(e){}
+    }
+
     if (rawDesc.includes('---STORIES---')) {
       const parts = rawDesc.split('---STORIES---');
       cleanDesc = parts[0];
@@ -56,6 +64,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       name: row.get('name'),
       description: cleanDesc,
       coverUrl: row.get('coverUrl'),
+      featuredTitle: parsedFeatured?.title || '',
+      featuredCharacters: parsedFeatured?.chars || [],
       stories,
       characters,
       creatorName: creator?.get('displayName') || creator?.get('username') || 'Unknown',
