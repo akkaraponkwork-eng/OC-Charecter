@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
 import ImageUpload from '@/components/ImageUpload';
-import { User, AtSign, Camera, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { User, AtSign, Camera, Pencil, Trash2, AlertTriangle, MessageCircle } from 'lucide-react';
 
 export default function MyProfilePage() {
   const { data: session, update } = useSession();
@@ -16,6 +16,7 @@ export default function MyProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [twitter, setTwitter] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [discord, setDiscord] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [toast, setToast] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -28,8 +29,8 @@ export default function MyProfilePage() {
       setAvatarUrl(data.avatarUrl || '');
       setTwitter(data.socialLinks?.twitter || '');
       setInstagram(data.socialLinks?.instagram || '');
+      setDiscord(data.socialLinks?.discord || '');
       setIsPublic(data.isPublic ?? true);
-
     });
   }, []);
 
@@ -37,7 +38,7 @@ export default function MyProfilePage() {
     setSaving(true);
     await fetch('/api/profile/me', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ displayName, bio, avatarUrl, socialLinks: { twitter, instagram }, isPublic }),
+      body: JSON.stringify({ displayName, bio, avatarUrl, socialLinks: { twitter, instagram, discord }, isPublic }),
     });
     await update({ avatarUrl, name: displayName });
     setSaving(false); setEditing(false);
@@ -99,18 +100,20 @@ export default function MyProfilePage() {
         {/* Social */}
         <div style={{ marginBottom: '1rem' }}>
           <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <AtSign size={14} /> Twitter / <Camera size={14} /> Instagram
+            <AtSign size={14} /> Twitter / <Camera size={14} /> Instagram / <MessageCircle size={14} /> Discord
           </label>
           {editing ? (
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <input className="input" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="@twitter" />
-              <input className="input" value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@instagram" />
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <input className="input" style={{ flex: 1, minWidth: 120 }} value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="@twitter" />
+              <input className="input" style={{ flex: 1, minWidth: 120 }} value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@instagram" />
+              <input className="input" style={{ flex: 1, minWidth: 120 }} value={discord} onChange={(e) => setDiscord(e.target.value)} placeholder="Discord link/ID" />
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', flexWrap: 'wrap' }}>
               {profile.socialLinks?.twitter && <a href={`https://twitter.com/${profile.socialLinks.twitter}`} target="_blank" rel="noopener" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><AtSign size={14} /> {profile.socialLinks.twitter}</a>}
               {profile.socialLinks?.instagram && <a href={`https://instagram.com/${profile.socialLinks.instagram}`} target="_blank" rel="noopener" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Camera size={14} /> {profile.socialLinks.instagram}</a>}
-              {!profile.socialLinks?.twitter && !profile.socialLinks?.instagram && <span style={{ color: 'var(--text-muted)' }}>—</span>}
+              {profile.socialLinks?.discord && <span style={{ color: '#5865F2', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MessageCircle size={14} /> {profile.socialLinks.discord}</span>}
+              {!profile.socialLinks?.twitter && !profile.socialLinks?.instagram && !profile.socialLinks?.discord && <span style={{ color: 'var(--text-muted)' }}>—</span>}
             </div>
           )}
         </div>

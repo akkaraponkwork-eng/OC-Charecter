@@ -65,10 +65,11 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
         </div>
 
         {/* Social */}
-        {(profile.socialLinks?.twitter || profile.socialLinks?.instagram) && (
-          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
+        {(profile.socialLinks?.twitter || profile.socialLinks?.instagram || profile.socialLinks?.discord) && (
+          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', flexWrap: 'wrap' }}>
             {profile.socialLinks?.twitter && <a href={`https://twitter.com/${profile.socialLinks.twitter}`} target="_blank" rel="noopener" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><AtSign size={14} /> @{profile.socialLinks.twitter}</a>}
             {profile.socialLinks?.instagram && <a href={`https://instagram.com/${profile.socialLinks.instagram}`} target="_blank" rel="noopener" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Camera size={14} /> @{profile.socialLinks.instagram}</a>}
+            {profile.socialLinks?.discord && <span style={{ color: '#5865F2', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MessageCircle size={14} /> {profile.socialLinks.discord}</span>}
           </div>
         )}
       </div>
