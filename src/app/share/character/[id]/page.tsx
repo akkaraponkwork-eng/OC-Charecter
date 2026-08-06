@@ -4,6 +4,7 @@ import CharacterRadarChart from '@/components/RadarChart';
 import { Globe, Book, Tag, BarChart2 } from 'lucide-react';
 import StoryCard from '@/components/StoryCard';
 import RelationAvatarList from '@/components/RelationAvatarList';
+import CharacterBarStats from '@/components/CharacterBarStats';
 
 async function getCharacter(id: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -85,7 +86,18 @@ export default async function PublicCharacterPage({ params }: { params: Promise<
                 </div>
               </div>
             )}
+            
+            {extra.barStats?.stats && (
+              <CharacterBarStats 
+                stats={extra.barStats.stats} 
+                color="#0ea5e9"
+                title="Parameter Stats"
+              />
+            )}
+          </div>
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {(extra.age || extra.gender || extra.height || extra.weight) && (
               <div className="glass" style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
                 {extra.age && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Age</div><div style={{ fontWeight: 600 }}>{extra.age}</div></div>}
                 {extra.gender && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</div><div style={{ fontWeight: 600 }}>{extra.gender}</div></div>}

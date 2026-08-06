@@ -57,6 +57,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
 
   // Radar Params
   const [useRadar, setUseRadar] = useState(false);
+  const [useBarStats, setUseBarStats] = useState(false);
   const [radarColor, setRadarColor] = useState('#ec4899');
   const [stats, setStats] = useState<Stat[]>(DEFAULT_STATS);
 
@@ -99,19 +100,31 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
           setRelations([]);
         }
 
-        if (extra.radar) {
-          setUseRadar(true);
-          setRadarColor(extra.radar.color || '#ec4899');
-          setStats(extra.radar.stats || DEFAULT_STATS);
+        if (extra.radar || extra.barStats) {
+          if (extra.radar) {
+            setUseRadar(true);
+            setRadarColor(extra.radar.color || '#ec4899');
+          } else {
+            setUseRadar(false);
+          }
+          
+          if (extra.barStats) {
+            setUseBarStats(true);
+          } else {
+            setUseBarStats(false);
+          }
+
+          setStats((extra.radar?.stats) || (extra.barStats?.stats) || DEFAULT_STATS);
         } else {
           setUseRadar(false);
+          setUseBarStats(false);
           setStats(DEFAULT_STATS);
         }
       } else {
         // Reset form
         setName(''); setAge(''); setGender(''); setHeight(''); setWeight(''); setImageUrl('');
         setNationality(''); setDob(''); setOccupation(''); setEthnicity('');
-        setUseRadar(false); setRadarColor('#ec4899'); setStats(DEFAULT_STATS);
+        setUseRadar(false); setUseBarStats(false); setRadarColor('#ec4899'); setStats(DEFAULT_STATS);
         setUseRelations(false); setRelationsTitle('ความสัมพันธ์ตัวละคร'); setRelations([]);
         setPersonality(''); setBio(''); setStories([]);
       }
@@ -127,6 +140,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
     const statsJSON = {
       age, gender, height, weight, nationality, dob, occupation, ethnicity, personality, stories,
       ...(useRadar ? { radar: { color: radarColor, stats } } : {}),
+      ...(useBarStats ? { barStats: { stats } } : {}),
       ...(useRelations ? { useRelations: true, relationsTitle, relations } : { useRelations: false })
     };
 
@@ -240,23 +254,32 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
             </div>
           </div>
 
-          {/* Radar Params */}
+          {/* Radar & Bar Params */}
           <div style={{ background: '#13141c', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: useRadar ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: (useRadar || useBarStats) ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
               <div>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>พารามิเตอร์เรดาร์</h3>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>พิมพ์แก้ไขชื่อมุมสถิติด้านล่างได้ทันที</p>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>พารามิเตอร์ค่าพลัง</h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>เลือกเปิดระบบแสดงผลค่าพลัง (เปิดพร้อมกันได้)</p>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <div style={{ position: 'relative', width: 44, height: 24, background: useRadar ? 'var(--primary)' : 'rgba(255,255,255,0.1)', borderRadius: 99, transition: '0.3s' }}>
-                  <div style={{ position: 'absolute', top: 2, left: useRadar ? 22 : 2, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: '0.3s' }} />
-                </div>
-                <span style={{ fontSize: '0.8rem' }}>{useRadar ? 'เปิดใช้งาน' : 'ปิด'}</span>
-                <input type="checkbox" checked={useRadar} onChange={(e) => setUseRadar(e.target.checked)} style={{ display: 'none' }} />
-              </label>
+              <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column', alignItems: 'flex-end' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <span style={{ fontSize: '0.8rem' }}>กราฟเรดาร์ (ฝั่งขวา)</span>
+                  <div style={{ position: 'relative', width: 44, height: 24, background: useRadar ? 'var(--primary)' : 'rgba(255,255,255,0.1)', borderRadius: 99, transition: '0.3s' }}>
+                    <div style={{ position: 'absolute', top: 2, left: useRadar ? 22 : 2, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: '0.3s' }} />
+                  </div>
+                  <input type="checkbox" checked={useRadar} onChange={(e) => setUseRadar(e.target.checked)} style={{ display: 'none' }} />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <span style={{ fontSize: '0.8rem' }}>แถวพลังแนวนอน (ฝั่งซ้าย)</span>
+                  <div style={{ position: 'relative', width: 44, height: 24, background: useBarStats ? '#0ea5e9' : 'rgba(255,255,255,0.1)', borderRadius: 99, transition: '0.3s' }}>
+                    <div style={{ position: 'absolute', top: 2, left: useBarStats ? 22 : 2, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: '0.3s' }} />
+                  </div>
+                  <input type="checkbox" checked={useBarStats} onChange={(e) => setUseBarStats(e.target.checked)} style={{ display: 'none' }} />
+                </label>
+              </div>
             </div>
 
-            {useRadar && (
+            {(useRadar || useBarStats) && (
               <div style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                   <span style={{ fontSize: '0.85rem' }}>สีของกราฟเรดาร์:</span>
@@ -317,11 +340,13 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
                   ))}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
-                  <div style={{ pointerEvents: 'none', width: '100%', maxWidth: 300, display: 'flex', justifyContent: 'center' }}>
-                    <CharacterRadarChart stats={radarChartData} size={200} color={radarColor} />
+                {useRadar && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
+                    <div style={{ pointerEvents: 'none', width: '100%', maxWidth: 300, display: 'flex', justifyContent: 'center' }}>
+                      <CharacterRadarChart stats={radarChartData} size={200} color={radarColor} />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
