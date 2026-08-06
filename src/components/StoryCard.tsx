@@ -1,6 +1,6 @@
 'use client';
 import { useSession } from 'next-auth/react';
-import { Lock } from 'lucide-react';
+import { Lock, Eye } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/store/useToast';
 
@@ -46,9 +46,16 @@ export default function StoryCard({ story, targetId, type, isOwner = false, coll
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           {story.title}
           {story.isLocked && (
-            <span style={{ fontSize: '0.8rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.5rem' }}>
-              <Lock size={12} /> Locked
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              <span style={{ fontSize: '0.8rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.5rem' }}>
+                <Lock size={12} /> Locked
+              </span>
+              {isAdmin && (
+                <div style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', padding: '0.2rem' }} title="Admin can read">
+                  <Eye size={16} />
+                </div>
+              )}
+            </div>
           )}
         </div>
         
