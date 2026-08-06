@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import CharacterRadarChart from '@/components/RadarChart';
 import { Globe, Book, Tag, BarChart2 } from 'lucide-react';
 import StoryCard from '@/components/StoryCard';
+import RelationAvatarList from '@/components/RelationAvatarList';
 
 async function getCharacter(id: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -113,6 +114,16 @@ export default async function PublicCharacterPage({ params }: { params: Promise<
             )}
           </div>
         </div>
+
+        {/* Relationships Section */}
+        {extra.useRelations && extra.relations && extra.relations.length > 0 && (
+          <div style={{ marginTop: '2rem' }}>
+            <RelationAvatarList 
+              title={extra.relationsTitle || 'ความสัมพันธ์ตัวละคร'}
+              relations={extra.relations}
+            />
+          </div>
+        )}
 
         {/* Stories Section */}
         {stories.length > 0 && (

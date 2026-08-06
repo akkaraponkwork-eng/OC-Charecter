@@ -8,6 +8,7 @@ import { Globe, Book, Tag, BarChart2, Lock, Pencil, ArrowLeft } from 'lucide-rea
 import Link from 'next/link';
 import { useLocale } from '@/store/useLocale';
 import StoryCard from '@/components/StoryCard';
+import RelationAvatarList from '@/components/RelationAvatarList';
 
 export default function CharacterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -147,6 +148,16 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
             )}
           </div>
         </div>
+
+        {/* Relationships Section */}
+        {extra.useRelations && extra.relations && extra.relations.length > 0 && (
+          <div style={{ marginTop: '2rem' }}>
+            <RelationAvatarList 
+              title={extra.relationsTitle || 'ความสัมพันธ์ตัวละคร'}
+              relations={extra.relations}
+            />
+          </div>
+        )}
 
         {/* Stories Section (Shows all for owner, public for others) */}
         {stories.length > 0 && (
