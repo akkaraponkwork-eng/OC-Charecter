@@ -43,6 +43,10 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
   const [gender, setGender] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
+  const [nationality, setNationality] = useState('');
+  const [dob, setDob] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [ethnicity, setEthnicity] = useState('');
   const [imageUrl, setImageUrl] = useState('');
 
   // Radar Params
@@ -67,6 +71,10 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
         setGender(extra.gender || '');
         setHeight(extra.height || '');
         setWeight(extra.weight || '');
+        setNationality(extra.nationality || '');
+        setDob(extra.dob || '');
+        setOccupation(extra.occupation || '');
+        setEthnicity(extra.ethnicity || '');
         setPersonality(extra.personality || '');
         setStories(extra.stories || []);
 
@@ -81,6 +89,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
       } else {
         // Reset form
         setName(''); setAge(''); setGender(''); setHeight(''); setWeight(''); setImageUrl('');
+        setNationality(''); setDob(''); setOccupation(''); setEthnicity('');
         setUseRadar(false); setRadarColor('#ec4899'); setStats(DEFAULT_STATS);
         setPersonality(''); setBio(''); setStories([]);
       }
@@ -94,7 +103,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
     setLoading(true);
 
     const statsJSON = {
-      age, gender, height, weight, personality, stories,
+      age, gender, height, weight, nationality, dob, occupation, ethnicity, personality, stories,
       ...(useRadar ? { radar: { color: radarColor, stats } } : {})
     };
 
@@ -169,6 +178,22 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
             <div>
               <label className="label">น้ำหนัก</label>
               <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="เช่น 65 กก." />
+            </div>
+            <div>
+              <label className="label">วันเดือนปีเกิด</label>
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={dob} onChange={(e) => setDob(e.target.value)} placeholder="เช่น 1 มกราคม 2000" />
+            </div>
+            <div>
+              <label className="label">อาชีพ</label>
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={occupation} onChange={(e) => setOccupation(e.target.value)} placeholder="เช่น นักเรียน, นักดาบ" />
+            </div>
+            <div>
+              <label className="label">สัญชาติ</label>
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="เช่น ไทย, ญี่ปุ่น" />
+            </div>
+            <div>
+              <label className="label">เชื้อชาติ</label>
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} placeholder="เช่น เอเชีย, เอลฟ์" />
             </div>
           </div>
 
