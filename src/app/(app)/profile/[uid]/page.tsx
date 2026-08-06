@@ -51,7 +51,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
             {!profile.avatarUrl && (profile.displayName || '?')[0].toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{profile.displayName}</h1>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 800 }} className={profile.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>{profile.displayName}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>@{profile.username}</p>
             {profile.bio && <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>{profile.bio}</p>}
           </div>

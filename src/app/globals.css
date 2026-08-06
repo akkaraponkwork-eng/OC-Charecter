@@ -392,3 +392,11 @@ body {
   .grid-cards { grid-template-columns: 1fr; }
   .modal-box { padding: 1.25rem; }
 }
+
+/* Role Colors */
+.text-role-admin {
+  color: #a855f7 !important; /* Purple */
+}
+.text-role-user {
+  color: #22c55e !important; /* Green */
+}

@@ -187,7 +187,7 @@ export default function Navbar() {
                   {(user?.name || user?.username || '?')[0].toUpperCase()}
                 </div>
               )}
-              <span style={{ fontSize: '0.85rem', fontWeight: 500, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 500, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className={user?.role?.toLowerCase() === 'admin' ? 'text-role-admin' : 'text-role-user'}>
                 {user?.name || user?.username}
               </span>
               {user?.role?.toLowerCase() === 'admin' && <span className="badge badge-admin" style={{ padding: '0.1rem 0.4rem', fontSize: '0.65rem' }}>admin</span>}

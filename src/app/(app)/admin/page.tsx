@@ -194,7 +194,7 @@ export default function AdminPage() {
                       {!user.avatarUrl && (user.displayName || user.username || '?')[0].toUpperCase()}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '1rem' }}>{user.displayName || user.username}</div>
+                      <div style={{ fontWeight: 700, fontSize: '1rem' }} className={user.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>{user.displayName || user.username}</div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>@{user.username}</div>
                     </div>
                   </div>

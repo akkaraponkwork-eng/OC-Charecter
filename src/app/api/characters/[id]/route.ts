@@ -13,6 +13,15 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const ownerId = row.get('userId');
+    const isPublic = row.get('isPublic') === 'true';
+
+    const session = await auth();
+    const uid = (session?.user as any)?.uid;
+    const isAdmin = (session?.user as any)?.role === 'admin';
+
+    if (!isPublic && ownerId !== uid && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const character = {
       id: row.get('id'),
@@ -24,7 +33,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       tags: row.get('tags') ? row.get('tags').split(',').map((t: string) => t.trim()) : [],
       imageUrl: row.get('imageUrl'),
       bio: row.get('bio'),
-      isPublic: true,
+      isPublic,
       createdAt: row.get('createdAt'),
     };
     return NextResponse.json(character);

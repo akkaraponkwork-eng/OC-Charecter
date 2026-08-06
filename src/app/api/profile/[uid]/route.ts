@@ -20,7 +20,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const uniRows = await uniSheet.getCachedRows();
     const universes = uniRows.filter(
-      (r) => r.get('userId') === uid
+      (r) => r.get('userId') === uid && (r.get('isPublic') === 'true' || uid === myUid || isAdmin)
     ).map((r) => {
       const isPublic = r.get('isPublic') === 'true';
       return {
@@ -28,11 +28,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       };
     });
 
-    // Get ALL characters for this user
+    // Get characters for this user (respect privacy)
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const charRows = await charSheet.getCachedRows();
     const characters = charRows.filter(
-      (r) => r.get('userId') === uid
+      (r) => r.get('userId') === uid && (r.get('isPublic') === 'true' || uid === myUid || isAdmin)
     ).map((r) => {
       const isPublic = r.get('isPublic') === 'true';
       return {
@@ -48,6 +48,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       bio: user.get('bio'),
       socialLinks: (() => { try { return JSON.parse(user.get('socialLinks') || '{}'); } catch { return {}; } })(),
       isPublic: user.get('isPublic') === 'true',
+      role: user.get('role'),
       universes,
       characters,
       createdAt: user.get('createdAt'),

@@ -127,7 +127,7 @@ export default function CommunityPage() {
                         {!u.avatarUrl && (u.displayName?.[0] || u.username?.[0] || '?').toUpperCase()}
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.2rem' }} className={u.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>
                           {u.displayName || u.username}
                         </h3>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@{u.username}</p>

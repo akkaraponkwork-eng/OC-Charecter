@@ -19,9 +19,9 @@ export default function FloatingChatWidget() {
       pointerEvents: 'none', // Allow clicking through the container
     }}>
       {floatingChats.map((chat) => (
-        <div key={chat.id} style={{ 
-          width: 340, 
-          height: 480, 
+        <div key={chat.id} style={{
+          width: 340,
+          height: 480,
           pointerEvents: 'auto', // Enable clicks inside the chat
           boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
           borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
@@ -32,10 +32,10 @@ export default function FloatingChatWidget() {
           border: '1px solid var(--glass-border)',
           borderBottom: 'none'
         }}>
-          <ChatBox 
-            chatId={chat.id} 
-            title={chat.title} 
-            onClose={() => removeFloatingChat(chat.id)} 
+          <ChatBox
+            chatId={chat.id}
+            title={chat.title}
+            onClose={() => removeFloatingChat(chat.id)}
           />
         </div>
       ))}
