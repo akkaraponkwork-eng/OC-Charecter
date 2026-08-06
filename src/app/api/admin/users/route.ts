@@ -59,7 +59,7 @@ export async function PUT(req: NextRequest) {
   if (!session?.user || (session.user as any).role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { uid, role, resetPassword } = await req.json();
+  const { uid, role, resetPassword, displayName, bio, isPublic } = await req.json();
   try {
     const sheet = await getSheet(SHEET_NAMES.USERS);
     const rows = await sheet.getRows();
@@ -71,11 +71,13 @@ export async function PUT(req: NextRequest) {
       user.set('passwordHash', passwordHash);
     }
 
-    if (role) {
-      user.set('role', role);
-    }
+    if (role !== undefined) user.set('role', role);
+    if (displayName !== undefined) user.set('displayName', displayName);
+    if (bio !== undefined) user.set('bio', bio);
+    if (isPublic !== undefined) user.set('isPublic', String(isPublic));
 
     await user.save();
+    clearSheetCache(SHEET_NAMES.USERS);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

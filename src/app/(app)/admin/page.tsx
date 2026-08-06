@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useLocale } from '@/store/useLocale';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Shield, Trash2, Key, Users, BookOpen, ChevronDown, ChevronUp, Mail, Calendar } from 'lucide-react';
+import { Shield, Trash2, Key, Users, BookOpen, ChevronDown, ChevronUp, Mail, Calendar, Pencil } from 'lucide-react';
 import { useToast } from '@/store/useToast';
 
 export default function AdminPage() {
@@ -37,6 +37,13 @@ export default function AdminPage() {
   const [resetting, setResetting] = useState(false);
   
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editIsPublic, setEditIsPublic] = useState(true);
+  const [savingUser, setSavingUser] = useState(false);
+
   const { showToast } = useToast();
 
   const load = () => {
@@ -72,6 +79,21 @@ export default function AdminPage() {
     await fetch('/api/admin/users', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid, role }) });
     setUsers(users.map(u => u.uid === uid ? { ...u, role } : u));
     showToast('Role updated!', 'success');
+  };
+
+  const handleEditUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setSavingUser(true);
+    await fetch('/api/admin/users', { 
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ uid: editingUser.uid, displayName: editDisplayName, bio: editBio, isPublic: editIsPublic }) 
+    });
+    setUsers(users.map(u => u.uid === editingUser.uid ? { ...u, displayName: editDisplayName, bio: editBio, isPublic: String(editIsPublic) } : u));
+    showToast('Profile updated!', 'success');
+    setSavingUser(false);
+    setEditingUser(null);
   };
 
   const handleDelete = async (uid: string) => {
@@ -275,6 +297,18 @@ export default function AdminPage() {
                         <button 
                           className="btn-secondary" 
                           style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }} 
+                          onClick={() => {
+                            setEditingUser(user);
+                            setEditDisplayName(user.displayName || user.username);
+                            setEditBio(user.bio || '');
+                            setEditIsPublic(user.isPublic === 'true');
+                          }}
+                        >
+                          <Pencil size={14} /> Edit Profile
+                        </button>
+                        <button 
+                          className="btn-secondary" 
+                          style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }} 
                           onClick={() => setShowReset(user.uid)}
                         >
                           <Key size={14} /> Reset Password
@@ -415,6 +449,35 @@ export default function AdminPage() {
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                 <button type="button" className="btn-secondary" onClick={() => setShowReset(null)}>{t('common.cancel')}</button>
                 <button type="submit" className="btn-primary" disabled={resetting}>{resetting ? '...' : 'Reset Password'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {editingUser && (
+        <div className="modal-overlay" onClick={() => setEditingUser(null)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Pencil size={20} /> Edit User Profile
+            </h2>
+            <form onSubmit={handleEditUser} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="label">Display Name</label>
+                <input className="input" type="text" value={editDisplayName} onChange={(e) => setEditDisplayName(e.target.value)} required />
+              </div>
+              <div>
+                <label className="label">Bio</label>
+                <textarea className="input" style={{ minHeight: 80, resize: 'vertical' }} value={editBio} onChange={(e) => setEditBio(e.target.value)} />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', marginTop: '0.5rem' }}>
+                <input type="checkbox" checked={editIsPublic} onChange={(e) => setEditIsPublic(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--primary)' }} />
+                <span>Show in Community (Public)</span>
+              </label>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>{t('common.cancel')}</button>
+                <button type="submit" className="btn-primary" disabled={savingUser}>{savingUser ? '...' : 'Save Profile'}</button>
               </div>
             </form>
           </div>
