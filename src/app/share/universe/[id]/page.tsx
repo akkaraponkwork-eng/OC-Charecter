@@ -59,6 +59,9 @@ export default async function PublicUniversePage({ params }: { params: Promise<{
         {universe.description && (
           <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
             <p style={{ lineHeight: 1.8, color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{universe.description}</p>
+          </div>
+        )}
+
         {/* Stories Section */}
         {stories.length > 0 && (
           <div style={{ marginBottom: '2.5rem' }}>
