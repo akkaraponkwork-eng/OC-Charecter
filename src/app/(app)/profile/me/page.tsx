@@ -16,6 +16,7 @@ export default function MyProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [twitter, setTwitter] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
   const [toast, setToast] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -27,6 +28,7 @@ export default function MyProfilePage() {
       setAvatarUrl(data.avatarUrl || '');
       setTwitter(data.socialLinks?.twitter || '');
       setInstagram(data.socialLinks?.instagram || '');
+      setIsPublic(data.isPublic ?? true);
 
     });
   }, []);
@@ -35,7 +37,7 @@ export default function MyProfilePage() {
     setSaving(true);
     await fetch('/api/profile/me', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ displayName, bio, avatarUrl, socialLinks: { twitter, instagram } }),
+      body: JSON.stringify({ displayName, bio, avatarUrl, socialLinks: { twitter, instagram }, isPublic }),
     });
     await update({ avatarUrl, name: displayName });
     setSaving(false); setEditing(false);
@@ -113,7 +115,25 @@ export default function MyProfilePage() {
           )}
         </div>
 
-
+        {/* Incognito Toggle (Admin Only) */}
+        {profile.role === 'admin' && (
+          <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', border: '1px solid var(--glass-border)' }}>
+            <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)' }}>
+              <User size={14} /> Admin Visibility (Ghost Mode)
+            </label>
+            {editing ? (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', marginTop: '0.5rem' }}>
+                <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--primary)' }} />
+                <span>Show my profile in Community (Public)</span>
+              </label>
+            ) : (
+              <p style={{ color: isPublic ? 'var(--success)' : 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: isPublic ? 'var(--success)' : 'var(--text-muted)' }} />
+                {isPublic ? 'Public (Visible to everyone)' : 'Hidden (Incognito Mode)'}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>

@@ -18,7 +18,7 @@ export async function GET() {
       displayName: user.get('displayName'), avatarUrl: user.get('avatarUrl'),
       bio: user.get('bio'), role: user.get('role'),
       socialLinks: (() => { try { return JSON.parse(user.get('socialLinks') || '{}'); } catch { return {}; } })(),
-      isPublic: user.get('isPublic') === 'true', createdAt: user.get('createdAt'),
+      isPublic: String(user.get('isPublic')).toLowerCase() !== 'false', createdAt: user.get('createdAt'),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

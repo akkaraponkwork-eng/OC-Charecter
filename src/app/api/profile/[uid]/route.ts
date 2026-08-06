@@ -14,8 +14,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const isAdmin = (session?.user as any)?.role === 'admin';
 
     const isUserPublic = String(user.get('isPublic')).toLowerCase() !== 'false';
-    if (!user)
+    if (!user || (!isUserPublic && user.get('uid') !== myUid && !isAdmin))
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+
+    const realRole = user.get('role');
+    const displayRole = (isAdmin || user.get('uid') === myUid) ? realRole : (realRole === 'admin' ? 'user' : realRole);
 
     // Get ALL universes for this user
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
@@ -47,9 +50,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       username: user.get('username'),
       avatarUrl: user.get('avatarUrl'),
       bio: user.get('bio'),
-      socialLinks: (() => { try { return JSON.parse(user.get('socialLinks') || '{}'); } catch { return {}; } })(),
+      socialLinks: user.get('socialLinks') ? JSON.parse(user.get('socialLinks')) : null,
       isPublic: isUserPublic,
-      role: user.get('role'),
+      role: displayRole,
       universes,
       characters,
       createdAt: user.get('createdAt'),
