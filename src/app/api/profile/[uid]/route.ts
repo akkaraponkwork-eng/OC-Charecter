@@ -13,16 +13,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const myUid = (session?.user as any)?.uid;
     const isAdmin = (session?.user as any)?.role === 'admin';
 
-    if (!user || (user.get('isPublic') !== 'true' && user.get('uid') !== myUid && !isAdmin))
+    const isUserPublic = String(user.get('isPublic')).toLowerCase() !== 'false';
+    if (!user || (!isUserPublic && user.get('uid') !== myUid && !isAdmin))
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
     // Get ALL universes for this user
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const uniRows = await uniSheet.getCachedRows();
     const universes = uniRows.filter(
-      (r) => r.get('userId') === uid && (r.get('isPublic') === 'true' || uid === myUid || isAdmin)
+      (r) => r.get('userId') === uid && (String(r.get('isPublic')).toLowerCase() !== 'false' || uid === myUid || isAdmin)
     ).map((r) => {
-      const isPublic = r.get('isPublic') === 'true';
+      const isPublic = String(r.get('isPublic')).toLowerCase() !== 'false';
       return {
         id: r.get('id'), name: r.get('name'), coverUrl: r.get('coverUrl'), isPublic
       };
@@ -32,9 +33,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const charRows = await charSheet.getCachedRows();
     const characters = charRows.filter(
-      (r) => r.get('userId') === uid && (r.get('isPublic') === 'true' || uid === myUid || isAdmin)
+      (r) => r.get('userId') === uid && (String(r.get('isPublic')).toLowerCase() !== 'false' || uid === myUid || isAdmin)
     ).map((r) => {
-      const isPublic = r.get('isPublic') === 'true';
+      const isPublic = String(r.get('isPublic')).toLowerCase() !== 'false';
       return {
         id: r.get('id'), name: r.get('name'), imageUrl: r.get('imageUrl'), isPublic
       };
@@ -47,7 +48,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       avatarUrl: user.get('avatarUrl'),
       bio: user.get('bio'),
       socialLinks: (() => { try { return JSON.parse(user.get('socialLinks') || '{}'); } catch { return {}; } })(),
-      isPublic: user.get('isPublic') === 'true',
+      isPublic: isUserPublic,
       role: user.get('role'),
       universes,
       characters,

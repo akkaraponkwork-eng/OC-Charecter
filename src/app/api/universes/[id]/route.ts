@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     const row = rows.find((r) => r.get('id') === id);
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const isPublic = row.get('isPublic') === 'true';
+    const isPublic = String(row.get('isPublic')).toLowerCase() !== 'false';
     const ownerId = row.get('userId');
     let isCollaborator = false;
 

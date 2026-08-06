@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const ownerId = row.get('userId');
-    const isPublic = row.get('isPublic') === 'true';
+    const isPublic = String(row.get('isPublic')).toLowerCase() !== 'false';
 
     const session = await auth();
     const uid = (session?.user as any)?.uid;
