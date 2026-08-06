@@ -163,11 +163,11 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
                   {renderMessageContent(msg.content)}
                 </div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-subtle)', marginTop: '0.2rem', display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', alignItems: 'center', gap: '0.5rem' }}>
-                  {isSelf && (
+                  {(isSelf || chatId.startsWith('dm_')) && (
                     <button 
                       onClick={() => deleteMessage(msg.id)}
                       style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
-                      title="Unsend message"
+                      title="Delete message"
                     >
                       <Trash2 size={12} />
                     </button>

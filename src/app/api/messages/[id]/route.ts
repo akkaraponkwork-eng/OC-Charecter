@@ -18,9 +18,13 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     
-    // Only allow the sender to delete their own message
-    if (row.get('senderId') !== uid) {
-      return NextResponse.json({ error: 'Forbidden: You can only delete your own messages' }, { status: 403 });
+    const isAdmin = (session.user as any).role === 'admin';
+    const chatId = row.get('chatId') || '';
+    const isDmParticipant = chatId.startsWith('dm_') && chatId.includes(uid);
+    
+    // Allow deletion if: User is Admin OR User is the Sender OR User is a participant in this DM
+    if (!isAdmin && row.get('senderId') !== uid && !isDmParticipant) {
+      return NextResponse.json({ error: 'Forbidden: You cannot delete this message' }, { status: 403 });
     }
 
     await row.delete();
