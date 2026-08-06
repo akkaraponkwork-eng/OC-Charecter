@@ -125,6 +125,19 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
     setMessages(prev => prev.filter(m => m.id !== messageId));
   };
 
+  const clearChat = async () => {
+    if (!confirm('Are you sure you want to clear this ENTIRE chat history? This cannot be undone.')) return;
+    const res = await fetch(`/api/messages/chat/${chatId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setMessages([]);
+      showToast('Chat history cleared', 'success');
+      if (onClose) onClose();
+    } else {
+      const data = await res.json();
+      showToast(data.error || 'Failed to clear chat', 'error');
+    }
+  };
+
   const containerStyle = asPanel ? {
     position: 'fixed' as const, right: 0, top: 60, bottom: 0,
     width: 360, background: 'var(--bg-elevated)', borderLeft: '1px solid var(--glass-border)',
@@ -143,9 +156,12 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
         <div style={{ fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <MessageCircle size={16} /> {title}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button onClick={clearChat} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Clear Chat History">
+            <Trash2 size={16} />
+          </button>
           {onClose && (
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '0.5rem' }}>×</button>
           )}
         </div>
       </div>
