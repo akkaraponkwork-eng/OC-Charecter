@@ -11,6 +11,12 @@ interface Story {
   isLocked?: boolean;
 }
 
+interface Relation {
+  id: string;
+  imageUrl: string;
+  description: string;
+}
+
 interface Stat {
   label: string;
   value: number;
@@ -59,6 +65,11 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
   const [bio, setBio] = useState('');
   const [stories, setStories] = useState<Story[]>([]);
 
+  // Relationships
+  const [useRelations, setUseRelations] = useState(false);
+  const [relationsTitle, setRelationsTitle] = useState('ความสัมพันธ์ตัวละคร');
+  const [relations, setRelations] = useState<Relation[]>([]);
+
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
@@ -78,6 +89,16 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
         setPersonality(extra.personality || '');
         setStories(extra.stories || []);
 
+        if (extra.useRelations) {
+          setUseRelations(true);
+          setRelationsTitle(extra.relationsTitle || 'ความสัมพันธ์ตัวละคร');
+          setRelations(extra.relations || []);
+        } else {
+          setUseRelations(false);
+          setRelationsTitle('ความสัมพันธ์ตัวละคร');
+          setRelations([]);
+        }
+
         if (extra.radar) {
           setUseRadar(true);
           setRadarColor(extra.radar.color || '#ec4899');
@@ -91,6 +112,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
         setName(''); setAge(''); setGender(''); setHeight(''); setWeight(''); setImageUrl('');
         setNationality(''); setDob(''); setOccupation(''); setEthnicity('');
         setUseRadar(false); setRadarColor('#ec4899'); setStats(DEFAULT_STATS);
+        setUseRelations(false); setRelationsTitle('ความสัมพันธ์ตัวละคร'); setRelations([]);
         setPersonality(''); setBio(''); setStories([]);
       }
     }
@@ -104,7 +126,8 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
 
     const statsJSON = {
       age, gender, height, weight, nationality, dob, occupation, ethnicity, personality, stories,
-      ...(useRadar ? { radar: { color: radarColor, stats } } : {})
+      ...(useRadar ? { radar: { color: radarColor, stats } } : {}),
+      ...(useRelations ? { useRelations: true, relationsTitle, relations } : { useRelations: false })
     };
 
     const data: any = { name, imageUrl, bio, statsJSON };
@@ -126,6 +149,18 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
 
   const removeStory = (id: string) => {
     setStories(stories.filter(s => s.id !== id));
+  };
+
+  const handleAddRelation = () => {
+    setRelations([...relations, { id: Math.random().toString(36).substring(7), imageUrl: '', description: '' }]);
+  };
+
+  const updateRelation = (id: string, field: keyof Relation, value: any) => {
+    setRelations(relations.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const removeRelation = (id: string) => {
+    setRelations(relations.filter(r => r.id !== id));
   };
 
   const updateStat = (index: number, field: keyof Stat, value: any) => {
@@ -299,6 +334,53 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
           <div>
             <label className="label">ประวัติย่อ / ข้อมูลเบื้องหลัง</label>
             <textarea className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)', resize: 'vertical' }} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="ระบุประวัติเบื้องหลัง..." />
+          </div>
+
+          {/* Relationships */}
+          <div style={{ background: '#13141c', border: '1px solid rgba(14,165,233,0.3)', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: useRelations ? '1px solid rgba(255,255,255,0.05)' : 'none', background: 'rgba(14,165,233,0.02)' }}>
+              <div>
+                {useRelations ? (
+                  <input
+                    value={relationsTitle}
+                    onChange={(e) => setRelationsTitle(e.target.value)}
+                    style={{ background: 'transparent', border: 'none', color: '#0ea5e9', fontWeight: 600, fontSize: '0.95rem', width: '100%', outline: 'none' }}
+                  />
+                ) : (
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#0ea5e9' }}>ความสัมพันธ์ตัวละคร</h3>
+                )}
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>เปิดเพื่อระบุข้อมูลความสัมพันธ์ หรือเครือข่าย</p>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <div style={{ position: 'relative', width: 44, height: 24, background: useRelations ? '#0ea5e9' : 'rgba(255,255,255,0.1)', borderRadius: 99, transition: '0.3s' }}>
+                  <div style={{ position: 'absolute', top: 2, left: useRelations ? 22 : 2, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: '0.3s' }} />
+                </div>
+                <span style={{ fontSize: '0.8rem' }}>{useRelations ? 'เปิดใช้งาน' : 'ปิด'}</span>
+                <input type="checkbox" checked={useRelations} onChange={(e) => setUseRelations(e.target.checked)} style={{ display: 'none' }} />
+              </label>
+            </div>
+
+            {useRelations && (
+              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {relations.map((relation) => (
+                  <div key={relation.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <div style={{ flexShrink: 0, width: 80, height: 80, borderRadius: '50%', border: '2px dashed rgba(14,165,233,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,165,233,0.05)' }}>
+                      <ImageUpload onUploaded={(url) => updateRelation(relation.id, 'imageUrl', url)} currentUrl={relation.imageUrl} size={80} />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <textarea className="input" style={{ width: '100%', resize: 'vertical', minHeight: 60, padding: '0.5rem', fontSize: '0.85rem' }} value={relation.description} onChange={(e) => updateRelation(relation.id, 'description', e.target.value)} placeholder="ข้อมูล / บทบาท / ความสัมพันธ์..." />
+                        <button type="button" onClick={() => removeRelation(relation.id)} className="btn-danger" style={{ padding: '0.4rem', marginLeft: '0.5rem' }}><Trash2 size={16} /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <button type="button" onClick={handleAddRelation} style={{ background: 'none', border: '1px dashed #0ea5e9', color: '#0ea5e9', padding: '0.75rem', borderRadius: 12, fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <Plus size={16} /> เพิ่มตัวละคร / ความสัมพันธ์
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Story Logs */}
