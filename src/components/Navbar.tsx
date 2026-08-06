@@ -52,13 +52,12 @@ export default function Navbar() {
         if (Array.isArray(chats)) {
           let unread = 0;
           chats.forEach(chat => {
-            if (chat.latestMessage) {
-              const lastRead = localStorage.getItem('lastRead_' + chat.id);
-              if (!lastRead || new Date(chat.latestMessage.createdAt) > new Date(lastRead)) {
-                unread++;
-                const lastSeen = localStorage.getItem('lastSeenMsg_' + chat.id);
-                const isSuperFresh = Date.now() - new Date(chat.latestMessage.createdAt).getTime() < 60000;
-                if ((!lastSeen && isSuperFresh) || (lastSeen && new Date(chat.latestMessage.createdAt) > new Date(lastSeen))) {
+            if (chat.unreadCount > 0) {
+              unread++;
+              // Show popup for new messages if needed (we can track last seen in localStorage just for the popup, not the badge)
+              const lastSeen = localStorage.getItem('lastSeenMsg_' + chat.id);
+              if (chat.latestMessage) {
+                if (!lastSeen || new Date(chat.latestMessage.createdAt) > new Date(lastSeen)) {
                   localStorage.setItem('lastSeenMsg_' + chat.id, chat.latestMessage.createdAt);
                   setPopup({ title: 'New Message', message: `${chat.latestMessage.senderName}: ${chat.latestMessage.content}` });
                   if (popupTimeout.current) clearTimeout(popupTimeout.current);

@@ -36,6 +36,14 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
       const data = await res.json(); 
       setMessages(data); 
       // Mark as read immediately when messages are loaded
+      const hasUnread = data.some((m: any) => m.senderId !== uid && !m.readBy?.includes(uid));
+      if (hasUnread) {
+        await fetch('/api/messages/read', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chatId })
+        });
+      }
       localStorage.setItem('lastRead_' + chatId, new Date().toISOString());
       localStorage.setItem('lastSeenMsg_' + chatId, new Date().toISOString());
     }
@@ -171,6 +179,9 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
                     >
                       <Trash2 size={12} />
                     </button>
+                  )}
+                  {isSelf && msg.readBy?.length > 0 && (
+                    <span style={{ color: 'var(--primary)', fontWeight: 600 }}>อ่านแล้ว ✓✓</span>
                   )}
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>

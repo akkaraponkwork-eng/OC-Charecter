@@ -60,10 +60,23 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // 3. Attach latest message for all chats
+    // 3. Attach latest message and compute unreadCount for all chats
     chats.forEach(chat => {
       // Find all messages for this chat
       const chatMsgs = msgRows.filter(r => r.get('chatId') === chat.id);
+      
+      let unreadCount = 0;
+      chatMsgs.forEach(msg => {
+        if (msg.get('senderId') !== uid) {
+          let readBy: string[] = [];
+          try { readBy = JSON.parse(msg.get('readBy') || '[]'); } catch (e) { readBy = []; }
+          if (!readBy.includes(uid)) {
+            unreadCount++;
+          }
+        }
+      });
+      chat.unreadCount = unreadCount;
+
       if (chatMsgs.length > 0) {
         // Sort by date descending
         chatMsgs.sort((a, b) => new Date(b.get('createdAt')).getTime() - new Date(a.get('createdAt')).getTime());

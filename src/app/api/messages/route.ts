@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
         id: r.get('id'), chatId: r.get('chatId'),
         senderId: r.get('senderId'), senderName: r.get('senderName'),
         senderAvatar: r.get('senderAvatar'), content: r.get('content'),
+        readBy: r.get('readBy') ? JSON.parse(r.get('readBy') || '[]') : [],
         createdAt: r.get('createdAt'),
       }))
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -106,6 +107,7 @@ export async function POST(req: NextRequest) {
     await sheet.addRow({
       id, chatId: resolvedChatId, senderId: uid,
       senderName, senderAvatar, content: content.trim(),
+      readBy: '[]',
       createdAt: new Date().toISOString(),
     });
     

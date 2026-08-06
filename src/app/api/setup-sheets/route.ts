@@ -21,7 +21,7 @@ const SHEET_SCHEMAS = [
   },
   {
     title: 'Messages',
-    headers: ['id','chatId','senderId','senderName','senderAvatar','content','createdAt'],
+    headers: ['id','chatId','senderId','senderName','senderAvatar','content','readBy','createdAt'],
   },
   {
     title: 'ChatGroups',
