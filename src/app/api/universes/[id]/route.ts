@@ -30,16 +30,25 @@ export async function GET(req: NextRequest, { params }: Params) {
     }
 
 
+    let rawDesc = row.get('description') || '';
+    let cleanDesc = rawDesc;
+    let parsedStories = [];
+    if (rawDesc.includes('---STORIES---')) {
+      const parts = rawDesc.split('---STORIES---');
+      cleanDesc = parts[0];
+      try { parsedStories = JSON.parse(parts[1]); } catch(e){}
+    }
+
     return NextResponse.json({
       id: row.get('id'),
       userId: ownerId,
       name: row.get('name'),
-      description: row.get('description'),
+      description: cleanDesc,
       coverUrl: row.get('coverUrl'),
       isPublic,
       createdAt: row.get('createdAt'),
       isCollaborator,
-      stories: (row.get('stories') ? JSON.parse(row.get('stories')) : []).map((s: any) => {
+      stories: parsedStories.map((s: any) => {
         if (isAdmin || ownerId === uid || isCollaborator) return s;
         if (s.isLocked) return { ...s, description: '' };
         return s;
@@ -70,10 +79,31 @@ export async function PUT(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     if (body.name !== undefined) row.set('name', body.name);
-    if (body.description !== undefined) row.set('description', body.description);
     if (body.coverUrl !== undefined) row.set('coverUrl', body.coverUrl);
     if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
-    if (body.stories !== undefined) row.set('stories', typeof body.stories === 'string' ? body.stories : JSON.stringify(body.stories));
+
+    let currentRawDesc = row.get('description') || '';
+    let currentDesc = currentRawDesc;
+    let currentStoriesStr = '';
+    if (currentRawDesc.includes('---STORIES---')) {
+      const parts = currentRawDesc.split('---STORIES---');
+      currentDesc = parts[0];
+      currentStoriesStr = parts[1];
+    }
+
+    if (body.description !== undefined) {
+      currentDesc = body.description;
+    }
+    if (body.stories !== undefined) {
+      currentStoriesStr = typeof body.stories === 'string' ? body.stories : (body.stories.length > 0 ? JSON.stringify(body.stories) : '');
+    }
+
+    let finalDesc = currentDesc;
+    if (currentStoriesStr) {
+      finalDesc += '---STORIES---' + currentStoriesStr;
+    }
+    row.set('description', finalDesc);
+
     await row.save();
     clearSheetCache(SHEET_NAMES.UNIVERSES);
 

@@ -17,9 +17,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const userRows = await usersSheet.getCachedRows();
     const creator = userRows.find((u) => u.get('uid') === row.get('userId'));
 
+    let rawDesc = row.get('description') || '';
+    let cleanDesc = rawDesc;
+    let parsedStories = [];
+    if (rawDesc.includes('---STORIES---')) {
+      const parts = rawDesc.split('---STORIES---');
+      cleanDesc = parts[0];
+      try { parsedStories = JSON.parse(parts[1]); } catch(e){}
+    }
+
     // Process stories: keep locked ones but redact their description
-    const rawStories = row.get('stories') ? JSON.parse(row.get('stories')) : [];
-    const stories = rawStories.map((s: any) => {
+    const stories = parsedStories.map((s: any) => {
       if (s.isLocked) {
         return { ...s, description: '' };
       }
@@ -46,7 +54,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({
       id: row.get('id'),
       name: row.get('name'),
-      description: row.get('description'),
+      description: cleanDesc,
       coverUrl: row.get('coverUrl'),
       stories,
       characters,

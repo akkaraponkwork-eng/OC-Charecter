@@ -25,17 +25,28 @@ export async function GET() {
 
     const universes = rows
       .filter((r) => isAdmin || r.get('userId') === uid || collabUniverseIds.includes(r.get('id')))
-      .map((r) => ({
-        id: r.get('id'),
-        userId: r.get('userId'),
-        name: r.get('name'),
-        description: r.get('description'),
-        coverUrl: r.get('coverUrl'),
-        isPublic: true,
-        createdAt: r.get('createdAt'),
-        isCollaborator: collabUniverseIds.includes(r.get('id')),
-        stories: r.get('stories') ? JSON.parse(r.get('stories')) : [],
-      }));
+      .map((r) => {
+        let rawDesc = r.get('description') || '';
+        let cleanDesc = rawDesc;
+        let parsedStories = [];
+        if (rawDesc.includes('---STORIES---')) {
+          const parts = rawDesc.split('---STORIES---');
+          cleanDesc = parts[0];
+          try { parsedStories = JSON.parse(parts[1]); } catch(e){}
+        }
+
+        return {
+          id: r.get('id'),
+          userId: r.get('userId'),
+          name: r.get('name'),
+          description: cleanDesc,
+          coverUrl: r.get('coverUrl'),
+          isPublic: true,
+          createdAt: r.get('createdAt'),
+          isCollaborator: collabUniverseIds.includes(r.get('id')),
+          stories: parsedStories,
+        };
+      });
 
     return NextResponse.json(universes);
   } catch (error: any) {
@@ -59,7 +70,6 @@ export async function POST(req: NextRequest) {
     await sheet.addRow({
       id, userId: uid, name, description: description || '',
       coverUrl: coverUrl || '', isPublic: 'true',
-      stories: '[]',
       createdAt: new Date().toISOString(),
     });
     return NextResponse.json({ id, userId: uid, name, description, coverUrl, isPublic: true, stories: [] });
