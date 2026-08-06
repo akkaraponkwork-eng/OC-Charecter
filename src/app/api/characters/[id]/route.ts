@@ -15,6 +15,9 @@ export async function GET(req: NextRequest, { params }: Params) {
     const ownerId = row.get('userId');
     const isPublic = String(row.get('isPublic')).toLowerCase() !== 'false';
 
+    const session = await auth();
+    const uid = (session?.user as any)?.uid;
+    const isAdmin = (session?.user as any)?.role === 'admin';
 
     const character = {
       id: row.get('id'),
