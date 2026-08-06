@@ -17,8 +17,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const userRows = await usersSheet.getCachedRows();
     const creator = userRows.find((u) => u.get('uid') === row.get('userId'));
 
-    // Filter stories to only public ones
-    const stories = (row.get('stories') ? JSON.parse(row.get('stories')) : []).filter((s: any) => !s.isLocked);
+    // Process stories: keep locked ones but redact their description
+    const rawStories = row.get('stories') ? JSON.parse(row.get('stories')) : [];
+    const stories = rawStories.map((s: any) => {
+      if (s.isLocked) {
+        return { ...s, description: '' };
+      }
+      return s;
+    });
 
     // Fetch characters in this universe
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
