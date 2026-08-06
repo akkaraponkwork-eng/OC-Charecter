@@ -27,6 +27,10 @@ const SHEET_SCHEMAS = [
     title: 'ChatGroups',
     headers: ['id','name','ownerId','memberIds','coverUrl','createdAt'],
   },
+  {
+    title: 'Notifications',
+    headers: ['id','userId','type','title','content','link','read','createdAt'],
+  },
 ];
 
 export async function POST() {

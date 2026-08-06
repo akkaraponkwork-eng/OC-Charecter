@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
-import { MessageCircle, Trash2, Settings, Users, UserPlus, X } from 'lucide-react';
+import { MessageCircle, Trash2, Settings, Users, UserPlus, X, Camera, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/store/useToast';
 
 interface Message {
@@ -24,6 +24,8 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout>();
@@ -45,6 +47,46 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
 
     return () => clearInterval(intervalRef.current);
   }, [chatId]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.url) {
+        await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chatId, content: `[IMG]${data.url}` })
+        });
+        fetchMessages();
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Image upload failed', 'error');
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const renderMessageContent = (content: string) => {
+    if (content.startsWith('[IMG]')) {
+      const url = content.replace('[IMG]', '');
+      return <img src={url} alt="Shared image" style={{ maxWidth: '100%', borderRadius: 8, maxHeight: 300, objectFit: 'contain' }} />;
+    }
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return content.split(urlRegex).map((part, i) => {
+      if (part.match(urlRegex)) {
+        return <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{part}</a>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -117,7 +159,9 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
               )}
               <div style={{ maxWidth: '75%' }}>
                 {!isSelf && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{msg.senderName}</div>}
-                <div className={isSelf ? 'bubble-self' : 'bubble-other'}>{msg.content}</div>
+                <div className={isSelf ? 'bubble-self' : 'bubble-other'} style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                  {renderMessageContent(msg.content)}
+                </div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-subtle)', marginTop: '0.2rem', display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', alignItems: 'center', gap: '0.5rem' }}>
                   {isSelf && (
                     <button 
@@ -138,7 +182,11 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
       </div>
 
       {/* Input */}
-      <form onSubmit={sendMessage} style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--glass-border)', display: 'flex', gap: '0.5rem' }}>
+      <form onSubmit={sendMessage} style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--glass-border)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} style={{ display: 'none' }} />
+        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage} className="btn-secondary" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }} title="Upload Image">
+          {uploadingImage ? <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> : <ImageIcon size={20} />}
+        </button>
         <input
           className="input"
           style={{ flex: 1, padding: '0.5rem 0.875rem', fontSize: '1rem' }}

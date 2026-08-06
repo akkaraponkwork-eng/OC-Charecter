@@ -53,6 +53,7 @@ export const SHEET_NAMES = {
   COLLABORATIONS: 'Collaborations',
   MESSAGES: 'Messages',
   CHAT_GROUPS: 'ChatGroups',
+  NOTIFICATIONS: 'Notifications',
 } as const;
 
 export type SheetName = typeof SHEET_NAMES[keyof typeof SHEET_NAMES];
