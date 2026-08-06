@@ -238,9 +238,11 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
 
       {/* Action bar */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <button className="btn-primary" onClick={loadMyCharacters} style={{ fontSize: '0.875rem' }}>
-          {t('universe.addCharacter')}
-        </button>
+        {(isOwner || universe?.isCollaborator || isAdmin) && (
+          <button className="btn-primary" onClick={loadMyCharacters} style={{ fontSize: '0.875rem' }}>
+            {t('universe.addCharacter')}
+          </button>
+        )}
         {isOwner && (<>
           <button className="btn-secondary" onClick={handleCopyLink} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Link size={14} /> {copied ? t('universe.copied') : t('universe.copyLink')}
@@ -257,9 +259,11 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
             <LogOut size={14} /> Leave Universe
           </button>
         )}
-        <button className="btn-secondary" onClick={() => setShowChat(!showChat)} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <MessageCircle size={14} /> {t('universe.chat')}
-        </button>
+        {(isOwner || universe?.isCollaborator || isAdmin) && (
+          <button className="btn-secondary" onClick={() => setShowChat(!showChat)} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MessageCircle size={14} /> {t('universe.chat')}
+          </button>
+        )}
       </div>
 
       {/* Invite panel */}
