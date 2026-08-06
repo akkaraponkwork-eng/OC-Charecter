@@ -39,7 +39,10 @@ export async function GET(req: NextRequest, { params }: Params) {
       isPublic,
       createdAt: row.get('createdAt'),
       isCollaborator,
-      stories: row.get('stories') ? JSON.parse(row.get('stories')) : [],
+      stories: (row.get('stories') ? JSON.parse(row.get('stories')) : []).filter((s: any) => {
+        if (isAdmin || ownerId === uid || isCollaborator) return true;
+        return !s.isLocked;
+      }),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
