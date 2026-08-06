@@ -113,22 +113,7 @@ export async function POST(req: NextRequest) {
     
     clearSheetCache(SHEET_NAMES.MESSAGES);
 
-    if (resolvedChatId.startsWith('dm_')) {
-      const parts = resolvedChatId.replace('dm_', '').split('_');
-      const otherUid = parts[0] === uid ? parts[1] : parts[0];
-      const notifSheet = await getSheet(SHEET_NAMES.NOTIFICATIONS);
-      await notifSheet.addRow({
-        id: uuidv4(),
-        userId: otherUid,
-        type: 'message',
-        title: 'New Message',
-        content: `You have a new message from ${senderName}`,
-        link: `/messages?userId=${uid}`,
-        read: 'false',
-        createdAt: new Date().toISOString()
-      });
-      clearSheetCache(SHEET_NAMES.NOTIFICATIONS);
-    }
+
 
     return NextResponse.json({ id, chatId: resolvedChatId, senderId: uid, senderName, senderAvatar, content, createdAt: new Date().toISOString() });
   } catch (error: any) {

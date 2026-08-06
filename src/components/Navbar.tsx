@@ -4,7 +4,6 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from '@/store/useLocale';
-import NotificationDropdown from './NotificationDropdown';
 import { FolderOpen, MessageCircle, Mail, Shield, User, LogOut, Sparkles, Menu, X, Users } from 'lucide-react';
 
 export default function Navbar() {
@@ -168,8 +167,6 @@ export default function Navbar() {
               }}
             >{locale === 'en' ? 'EN' : 'TH'}</button>
           )}
-
-          <NotificationDropdown />
 
           {/* Avatar dropdown */}
           <div style={{ position: 'relative' }}>
