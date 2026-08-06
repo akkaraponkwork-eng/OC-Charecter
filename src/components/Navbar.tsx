@@ -73,7 +73,12 @@ export default function Navbar() {
 
     checkNotifications();
     const interval = setInterval(checkNotifications, 10000);
-    return () => clearInterval(interval);
+    
+    window.addEventListener('chatRead', checkNotifications);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chatRead', checkNotifications);
+    };
   }, [session?.user?.email]);
 
   const navLinks = [

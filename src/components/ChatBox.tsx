@@ -49,6 +49,7 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ chatId })
         });
+        window.dispatchEvent(new CustomEvent('chatRead'));
       }
       localStorage.setItem('lastRead_' + chatId, new Date().toISOString());
       localStorage.setItem('lastSeenMsg_' + chatId, new Date().toISOString());

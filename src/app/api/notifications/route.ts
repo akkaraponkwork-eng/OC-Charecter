@@ -20,7 +20,7 @@ export async function GET() {
         title: r.get('title'),
         content: r.get('content'),
         link: r.get('link'),
-        read: r.get('read') === 'true',
+        read: r.get('read')?.toString().toLowerCase() === 'true',
         createdAt: r.get('createdAt'),
       }))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -42,7 +42,7 @@ export async function PUT(req: NextRequest) {
     let updated = false;
 
     for (const r of rows) {
-      if (r.get('userId') === uid && r.get('read') !== 'true') {
+      if (r.get('userId') === uid && r.get('read')?.toString().toLowerCase() !== 'true') {
         r.set('read', 'true');
         await r.save();
         updated = true;
