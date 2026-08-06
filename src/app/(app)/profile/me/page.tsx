@@ -122,17 +122,17 @@ export default function MyProfilePage() {
         {profile.role === 'admin' && (
           <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', border: '1px solid var(--glass-border)' }}>
             <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)' }}>
-              <User size={14} /> Admin Visibility (Ghost Mode)
+              <User size={14} /> โหมดซ่อนตัวสำหรับแอดมิน (Ghost Mode)
             </label>
             {editing ? (
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', marginTop: '0.5rem' }}>
                 <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--primary)' }} />
-                <span>Show my profile in Community (Public)</span>
+                <span>เปิดสาธารณะ (แสดงผลในหน้า Community)</span>
               </label>
             ) : (
               <p style={{ color: isPublic ? 'var(--success)' : 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: isPublic ? 'var(--success)' : 'var(--text-muted)' }} />
-                {isPublic ? 'Public (Visible to everyone)' : 'Hidden (Incognito Mode)'}
+                {isPublic ? 'เปิดสาธารณะ (ทุกคนมองเห็น)' : 'ปิดสาธารณะ (ซ่อนจากผู้ใช้ปกติ ยกเว้นแอดมิน)'}
               </p>
             )}
           </div>
