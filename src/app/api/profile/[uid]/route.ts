@@ -14,14 +14,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const isAdmin = (session?.user as any)?.role === 'admin';
 
     const isUserPublic = String(user.get('isPublic')).toLowerCase() !== 'false';
-    if (!user || (!isUserPublic && user.get('uid') !== myUid && !isAdmin))
+    if (!user)
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
     // Get ALL universes for this user
     const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
     const uniRows = await uniSheet.getCachedRows();
     const universes = uniRows.filter(
-      (r) => r.get('userId') === uid && (String(r.get('isPublic')).toLowerCase() !== 'false' || uid === myUid || isAdmin)
+      (r) => r.get('userId') === uid
     ).map((r) => {
       const isPublic = String(r.get('isPublic')).toLowerCase() !== 'false';
       return {
@@ -33,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
     const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
     const charRows = await charSheet.getCachedRows();
     const characters = charRows.filter(
-      (r) => r.get('userId') === uid && (String(r.get('isPublic')).toLowerCase() !== 'false' || uid === myUid || isAdmin)
+      (r) => r.get('userId') === uid
     ).map((r) => {
       const isPublic = String(r.get('isPublic')).toLowerCase() !== 'false';
       return {

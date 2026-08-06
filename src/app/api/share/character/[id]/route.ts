@@ -9,7 +9,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const row = rows.find((r) => r.get('id') === id);
 
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (row.get('isPublic') !== 'true') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
 
     // Fetch creator info
     const usersSheet = await getSheet(SHEET_NAMES.USERS);

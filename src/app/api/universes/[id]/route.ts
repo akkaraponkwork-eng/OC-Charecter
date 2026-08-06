@@ -29,9 +29,6 @@ export async function GET(req: NextRequest, { params }: Params) {
       );
     }
 
-    if (!isPublic && ownerId !== uid && !isAdmin && !isCollaborator) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     return NextResponse.json({
       id: row.get('id'),

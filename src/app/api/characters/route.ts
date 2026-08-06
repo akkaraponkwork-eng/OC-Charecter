@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         
         // If searching by universeId
         if (universeId) {
-          return charUniverseIds.includes(universeId) && (r.get('userId') === uid || allowedUniverseIds.includes(universeId));
+          return charUniverseIds.includes(universeId);
         }
         // If no universeId, return all owned characters and collaborated ones
         return r.get('userId') === uid || charUniverseIds.some((id: string) => allowedUniverseIds.includes(id));

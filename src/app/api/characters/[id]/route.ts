@@ -15,13 +15,6 @@ export async function GET(req: NextRequest, { params }: Params) {
     const ownerId = row.get('userId');
     const isPublic = String(row.get('isPublic')).toLowerCase() !== 'false';
 
-    const session = await auth();
-    const uid = (session?.user as any)?.uid;
-    const isAdmin = (session?.user as any)?.role === 'admin';
-
-    if (!isPublic && ownerId !== uid && !isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     const character = {
       id: row.get('id'),
