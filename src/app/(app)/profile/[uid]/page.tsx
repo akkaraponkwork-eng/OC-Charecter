@@ -31,8 +31,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
 
   const handleDM = () => {
     if (!myUid) return;
-    const chatId = [myUid, pageUid].sort().join('_');
-    router.push(`/messages?chatId=${chatId}`);
+    router.push(`/messages?userId=${pageUid}`);
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '4rem' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>;
