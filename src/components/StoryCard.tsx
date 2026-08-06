@@ -1,6 +1,7 @@
 'use client';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Lock, Eye } from 'lucide-react';
+import { Lock, Eye, EyeOff } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/store/useToast';
 
@@ -17,6 +18,47 @@ export default function StoryCard({ story, targetId, type, isOwner = false, coll
   const pathname = usePathname();
   const router = useRouter();
   const isAdmin = (session?.user as any)?.role === 'admin';
+
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [revealedDescription, setRevealedDescription] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleReveal = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent card click navigation
+    if (isRevealed) {
+      setIsRevealed(false);
+      return;
+    }
+
+    if (revealedDescription) {
+      setIsRevealed(true);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/${type === 'universe' ? 'universes' : 'characters'}/${targetId}`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      
+      let foundStory;
+      if (type === 'universe') {
+        foundStory = data.stories?.find((s: any) => s.id === story.id);
+      } else {
+        foundStory = data.statsJSON?.stories?.find((s: any) => s.id === story.id);
+      }
+
+      if (foundStory) {
+        setRevealedDescription(foundStory.description);
+        setIsRevealed(true);
+      } else {
+        showToast('Story not found in data', 'error');
+      }
+    } catch (e: any) {
+      showToast('Error revealing story', 'error');
+    }
+    setLoading(false);
+  };
 
   const handleClick = () => {
     if (story.isLocked && !isOwner && !isAdmin) {
@@ -51,9 +93,14 @@ export default function StoryCard({ story, targetId, type, isOwner = false, coll
                 <Lock size={12} /> Locked
               </span>
               {isAdmin && (
-                <div style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', padding: '0.2rem' }} title="Admin can read">
-                  <Eye size={16} />
-                </div>
+                <button 
+                  onClick={handleReveal}
+                  disabled={loading}
+                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.2rem' }}
+                  title="Admin: Reveal story"
+                >
+                  {loading ? <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> : (isRevealed ? <EyeOff size={16} /> : <Eye size={16} />)}
+                </button>
               )}
             </div>
           )}
@@ -65,6 +112,16 @@ export default function StoryCard({ story, targetId, type, isOwner = false, coll
           </span>
         )}
       </h4>
+
+      {isRevealed && revealedDescription && (
+        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ padding: '0.75rem', background: 'rgba(124,58,237,0.1)', border: '1px solid var(--primary)', borderRadius: 'var(--radius)' }}>
+            <p style={{ color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {revealedDescription}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
