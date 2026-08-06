@@ -6,8 +6,14 @@ import { MessageCircle, Trash2, Settings, Users, UserPlus, X, Camera, Image as I
 import { useToast } from '@/store/useToast';
 
 interface Message {
-  id: string; senderId: string; senderName: string;
-  senderAvatar: string; content: string; createdAt: string;
+  id: string;
+  chatId: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  content: string;
+  readBy?: string[];
+  createdAt: string;
 }
 
 interface Props {
@@ -180,7 +186,7 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
                       <Trash2 size={12} />
                     </button>
                   )}
-                  {isSelf && msg.readBy?.length > 0 && (
+                  {isSelf && msg.readBy && msg.readBy.length > 0 && (
                     <span style={{ color: 'var(--primary)', fontWeight: 600 }}>อ่านแล้ว ✓✓</span>
                   )}
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
