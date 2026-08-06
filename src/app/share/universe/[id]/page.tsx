@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { Globe, Book, Users, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import StoryCard from '@/components/StoryCard';
-import FeaturedAvatarList from '@/components/FeaturedAvatarList';
 
 async function getUniverse(id: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -61,18 +60,6 @@ export default async function PublicUniversePage({ params }: { params: Promise<{
           <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
             <p style={{ lineHeight: 1.8, color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{universe.description}</p>
           </div>
-        )}
-
-        {/* Featured Characters Section */}
-        {universe.featuredCharacters && universe.featuredCharacters.length > 0 && (
-          <FeaturedAvatarList 
-            title={universe.featuredTitle || 'ตัวละครหลัก'}
-            prefix="/share"
-            characters={universe.featuredCharacters.map((fc: any) => {
-              const char = characters.find((c: any) => c.id === fc.id);
-              return char ? { ...char, role: fc.role } : null;
-            }).filter(Boolean)} 
-          />
         )}
 
         {/* Stories Section */}

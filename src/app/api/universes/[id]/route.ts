@@ -33,13 +33,6 @@ export async function GET(req: NextRequest, { params }: Params) {
     let rawDesc = row.get('description') || '';
     let cleanDesc = rawDesc;
     let parsedStories = [];
-    let parsedFeatured = null;
-    
-    if (rawDesc.includes('---FEATURED---')) {
-      const parts = rawDesc.split('---FEATURED---');
-      rawDesc = parts[0]; // the rest is before featured
-      try { parsedFeatured = JSON.parse(parts[1]); } catch(e){}
-    }
 
     if (rawDesc.includes('---STORIES---')) {
       const parts = rawDesc.split('---STORIES---');
@@ -54,8 +47,6 @@ export async function GET(req: NextRequest, { params }: Params) {
       description: cleanDesc,
       coverUrl: row.get('coverUrl'),
       isPublic,
-      featuredTitle: parsedFeatured?.title || '',
-      featuredCharacters: parsedFeatured?.chars || [],
       createdAt: row.get('createdAt'),
       isCollaborator,
       stories: parsedStories.map((s: any) => {
@@ -95,13 +86,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
     let currentRawDesc = row.get('description') || '';
     let currentDesc = currentRawDesc;
     let currentStoriesStr = '';
-    let currentFeaturedStr = '';
-
-    if (currentRawDesc.includes('---FEATURED---')) {
-      const parts = currentRawDesc.split('---FEATURED---');
-      currentRawDesc = parts[0];
-      currentFeaturedStr = parts[1];
-    }
 
     if (currentRawDesc.includes('---STORIES---')) {
       const parts = currentRawDesc.split('---STORIES---');
@@ -115,20 +99,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (body.stories !== undefined) {
       currentStoriesStr = typeof body.stories === 'string' ? body.stories : (body.stories.length > 0 ? JSON.stringify(body.stories) : '');
     }
-    if (body.featuredCharacters !== undefined || body.featuredTitle !== undefined) {
-      if (body.featuredCharacters && body.featuredCharacters.length > 0) {
-        currentFeaturedStr = JSON.stringify({ title: body.featuredTitle, chars: body.featuredCharacters });
-      } else {
-        currentFeaturedStr = ''; // clear it if empty
-      }
-    }
 
     let finalDesc = currentDesc;
     if (currentStoriesStr) {
       finalDesc += '---STORIES---' + currentStoriesStr;
-    }
-    if (currentFeaturedStr) {
-      finalDesc += '---FEATURED---' + currentFeaturedStr;
     }
     row.set('description', finalDesc);
 
