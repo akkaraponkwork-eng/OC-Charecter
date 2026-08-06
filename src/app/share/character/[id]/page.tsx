@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import CharacterRadarChart from '@/components/RadarChart';
 import { Globe, Book, Tag, BarChart2 } from 'lucide-react';
+import StoryCard from '@/components/StoryCard';
 
 async function getCharacter(id: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -121,21 +122,7 @@ export default async function PublicCharacterPage({ params }: { params: Promise<
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {stories.map((story: any) => (
-                <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: story.isLocked ? 'var(--text-muted)' : 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    {story.title}
-                    {story.isLocked && <span style={{ fontSize: '0.8rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>Locked</span>}
-                  </h4>
-                  {!story.isLocked ? (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                      {story.description}
-                    </p>
-                  ) : (
-                    <div style={{ padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', opacity: 0.7, fontStyle: 'italic' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-subtle)' }}>This story is locked and cannot be read.</span>
-                    </div>
-                  )}
-                </div>
+                <StoryCard key={story.id} story={story} targetId={id} type="character" />
               ))}
             </div>
           </div>

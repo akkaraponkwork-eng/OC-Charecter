@@ -7,6 +7,7 @@ import CharacterFormModal from '@/components/CharacterFormModal';
 import { Globe, Book, Tag, BarChart2, Lock, Pencil, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/store/useLocale';
+import StoryCard from '@/components/StoryCard';
 
 export default function CharacterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -154,28 +155,15 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
               {t('character.stories')}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {stories.map((story: any) => {
-                const showLocked = !isOwner && !isAdmin && story.isLocked;
-                return (
-                  <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', position: 'relative' }}>
-                    {story.isLocked && (
-                      <span style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#f87171', background: 'rgba(248,113,113,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px' }}>
-                        <Lock size={12} /> {t('character.locked')}
-                      </span>
-                    )}
-                    <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: showLocked ? 'var(--text-muted)' : 'var(--primary)', marginBottom: '0.5rem', paddingRight: '4rem' }}>{story.title}</h4>
-                    {!showLocked ? (
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                        {story.description}
-                      </p>
-                    ) : (
-                      <div style={{ padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', opacity: 0.7, fontStyle: 'italic', marginTop: '0.5rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-subtle)' }}>This story is locked by the creator.</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {stories.map((story: any) => (
+                <StoryCard 
+                  key={story.id} 
+                  story={story} 
+                  targetId={id} 
+                  type="character" 
+                  isOwner={isOwner} 
+                />
+              ))}
             </div>
           </div>
         )}

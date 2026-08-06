@@ -25,7 +25,19 @@ export async function GET(req: NextRequest, { params }: Params) {
       universeId: row.get('universeId'),
       universeIds: row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [],
       name: row.get('name'),
-      statsJSON: (() => { try { return JSON.parse(row.get('statsJSON') || '{}'); } catch { return {}; } })(),
+      statsJSON: (() => { 
+        try { 
+          const parsed = JSON.parse(row.get('statsJSON') || '{}');
+          if (parsed.stories && Array.isArray(parsed.stories)) {
+            parsed.stories = parsed.stories.map((s: any) => {
+              if (isAdmin || ownerId === uid) return s;
+              if (s.isLocked) return { ...s, description: '' };
+              return s;
+            });
+          }
+          return parsed;
+        } catch { return {}; } 
+      })(),
       tags: row.get('tags') ? row.get('tags').split(',').map((t: string) => t.trim()) : [],
       imageUrl: row.get('imageUrl'),
       bio: row.get('bio'),

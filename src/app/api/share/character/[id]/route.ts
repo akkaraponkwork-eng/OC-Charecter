@@ -19,7 +19,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({
       id: row.get('id'), name: row.get('name'), bio: row.get('bio'),
       imageUrl: row.get('imageUrl'),
-      statsJSON: (() => { try { return JSON.parse(row.get('statsJSON') || '{}'); } catch { return {}; } })(),
+      statsJSON: (() => { 
+        try { 
+          const parsed = JSON.parse(row.get('statsJSON') || '{}'); 
+          if (parsed.stories && Array.isArray(parsed.stories)) {
+            parsed.stories = parsed.stories.map((s: any) => s.isLocked ? { ...s, description: '' } : s);
+          }
+          return parsed;
+        } catch { return {}; } 
+      })(),
       tags: row.get('tags') ? row.get('tags').split(',').map((t: string) => t.trim()) : [],
       creatorName: creator?.get('displayName') || creator?.get('username') || 'Unknown',
       creatorUid: row.get('userId'),

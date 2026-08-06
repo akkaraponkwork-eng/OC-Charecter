@@ -8,6 +8,7 @@ import CharacterCard from '@/components/CharacterCard';
 import ChatBox from '@/components/ChatBox';
 import CharacterFormModal from '@/components/CharacterFormModal';
 import ImageUpload from '@/components/ImageUpload';
+import StoryCard from '@/components/StoryCard';
 import { Lock, Globe, Link, Users, MessageCircle, BarChart2, Copy, Pencil, Trash2, Settings, Check, X, LogOut, Book } from 'lucide-react';
 
 const DEFAULT_STATS = { STR: 50, DEX: 50, INT: 50, WIS: 50, CHA: 50, CON: 50 };
@@ -312,28 +313,15 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
             <Book size={20} /> {t('universe.stories')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {universe.stories.map((story: any) => {
-              const showLocked = !isOwner && !universe.isCollaborator && !isAdmin && story.isLocked;
-              return (
-                <div key={story.id} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', position: 'relative' }}>
-                  {story.isLocked && (
-                    <span style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#f87171', background: 'rgba(248,113,113,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px' }}>
-                      <Lock size={12} /> Locked
-                    </span>
-                  )}
-                  <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: showLocked ? 'var(--text-muted)' : 'var(--primary)', marginBottom: '0.5rem', paddingRight: '4rem' }}>{story.title}</h4>
-                  {!showLocked ? (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                      {story.description}
-                    </p>
-                  ) : (
-                    <div style={{ padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', opacity: 0.7, fontStyle: 'italic', marginTop: '0.5rem' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-subtle)' }}>This story is locked by the creator.</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {universe.stories.map((story: any) => (
+              <StoryCard 
+                key={story.id} 
+                story={story} 
+                targetId={id} 
+                type="universe" 
+                isOwner={isOwner || universe.isCollaborator} 
+              />
+            ))}
           </div>
         </div>
       )}
