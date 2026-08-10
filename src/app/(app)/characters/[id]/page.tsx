@@ -131,12 +131,18 @@ export default function CharacterDetailPage({ params }: { params: Promise<{ id: 
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {(extra.age || extra.gender || extra.height || extra.weight) && (
+            {(extra.age || extra.gender || extra.height || extra.weight || extra.dob || extra.occupation || extra.nationality || extra.ethnicity || extra.race || extra.species) && (
               <div className="glass" style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
-                {extra.age && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Age</div><div style={{ fontWeight: 600 }}>{extra.age}</div></div>}
-                {extra.gender && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</div><div style={{ fontWeight: 600 }}>{extra.gender}</div></div>}
-                {extra.height && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Height</div><div style={{ fontWeight: 600 }}>{extra.height}</div></div>}
-                {extra.weight && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Weight</div><div style={{ fontWeight: 600 }}>{extra.weight}</div></div>}
+                {extra.age && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>อายุ (Age)</div><div style={{ fontWeight: 600 }}>{extra.age}</div></div>}
+                {extra.gender && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>เพศ (Gender)</div><div style={{ fontWeight: 600 }}>{extra.gender}</div></div>}
+                {extra.height && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ส่วนสูง (Height)</div><div style={{ fontWeight: 600 }}>{extra.height}</div></div>}
+                {extra.weight && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>น้ำหนัก (Weight)</div><div style={{ fontWeight: 600 }}>{extra.weight}</div></div>}
+                {extra.dob && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>วันเกิด (DOB)</div><div style={{ fontWeight: 600 }}>{extra.dob}</div></div>}
+                {extra.occupation && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>อาชีพ (Occupation)</div><div style={{ fontWeight: 600 }}>{extra.occupation}</div></div>}
+                {extra.nationality && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>สัญชาติ (Nationality)</div><div style={{ fontWeight: 600 }}>{extra.nationality}</div></div>}
+                {extra.ethnicity && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>เชื้อชาติ (Ethnicity)</div><div style={{ fontWeight: 600 }}>{extra.ethnicity}</div></div>}
+                {extra.race && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>เผ่าพันธุ์ (Race)</div><div style={{ fontWeight: 600 }}>{extra.race}</div></div>}
+                {extra.species && <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>สปีชีส์ (Species)</div><div style={{ fontWeight: 600 }}>{extra.species}</div></div>}
               </div>
             )}
           </div>

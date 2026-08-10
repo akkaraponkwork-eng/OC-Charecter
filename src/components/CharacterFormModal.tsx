@@ -53,6 +53,8 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
   const [dob, setDob] = useState('');
   const [occupation, setOccupation] = useState('');
   const [ethnicity, setEthnicity] = useState('');
+  const [race, setRace] = useState('');
+  const [species, setSpecies] = useState('');
   const [imageUrl, setImageUrl] = useState('');
 
   // Radar Params
@@ -87,6 +89,8 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
         setDob(extra.dob || '');
         setOccupation(extra.occupation || '');
         setEthnicity(extra.ethnicity || '');
+        setRace(extra.race || '');
+        setSpecies(extra.species || '');
         setPersonality(extra.personality || '');
         setStories(extra.stories || []);
 
@@ -123,7 +127,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
       } else {
         // Reset form
         setName(''); setAge(''); setGender(''); setHeight(''); setWeight(''); setImageUrl('');
-        setNationality(''); setDob(''); setOccupation(''); setEthnicity('');
+        setNationality(''); setDob(''); setOccupation(''); setEthnicity(''); setRace(''); setSpecies('');
         setUseRadar(false); setUseBarStats(false); setRadarColor('#ec4899'); setStats(DEFAULT_STATS);
         setUseRelations(false); setRelationsTitle('ความสัมพันธ์ตัวละคร'); setRelations([]);
         setPersonality(''); setBio(''); setStories([]);
@@ -138,7 +142,7 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
     setLoading(true);
 
     const statsJSON = {
-      age, gender, height, weight, nationality, dob, occupation, ethnicity, personality, stories,
+      age, gender, height, weight, nationality, dob, occupation, ethnicity, race, species, personality, stories,
       ...(useRadar ? { radar: { color: radarColor, stats } } : {}),
       ...(useBarStats ? { barStats: { stats } } : {}),
       ...(useRelations ? { useRelations: true, relationsTitle, relations } : { useRelations: false })
@@ -242,7 +246,15 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
             </div>
             <div>
               <label className="label">เชื้อชาติ</label>
-              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} placeholder="เช่น เอเชีย, เอลฟ์" />
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} placeholder="เช่น เอเชีย, ยุโรป" />
+            </div>
+            <div>
+              <label className="label">เผ่าพันธุ์</label>
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={race} onChange={(e) => setRace(e.target.value)} placeholder="เช่น มนุษย์, เอลฟ์, ปีศาจ" />
+            </div>
+            <div>
+              <label className="label">สปีชีส์</label>
+              <input className="input" style={{ background: '#13141c', borderColor: 'rgba(255,255,255,0.05)' }} value={species} onChange={(e) => setSpecies(e.target.value)} placeholder="เช่น แวมไพร์, มังกร, สุนัข" />
             </div>
           </div>
 
