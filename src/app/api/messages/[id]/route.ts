@@ -19,10 +19,18 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const uid = (session.user as any).uid;
 
   try {
-    const sheet = await getSheet(SHEET_NAMES.MESSAGES);
-    const rows = await sheet.getRows();
-    const row = rows.find((r) => r.get('id') === id);
+    let sheetName = SHEET_NAMES.MESSAGES;
+    let sheet = await getSheet(sheetName);
+    let rows = await sheet.getRows();
+    let row = rows.find((r) => r.get('id') === id);
     
+    if (!row) {
+      sheetName = SHEET_NAMES.SOCIAL_BOARD;
+      sheet = await getSheet(sheetName);
+      rows = await sheet.getRows();
+      row = rows.find((r) => r.get('id') === id);
+    }
+
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     
     const isAdmin = await resolveIsAdmin(uid);
@@ -41,7 +49,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     }
 
     await row.delete();
-    clearSheetCache(SHEET_NAMES.MESSAGES);
+    clearSheetCache(sheetName);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -60,9 +68,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { content } = await req.json();
     if (!content?.trim()) return NextResponse.json({ error: 'Content is required' }, { status: 400 });
 
-    const sheet = await getSheet(SHEET_NAMES.MESSAGES);
-    const rows = await sheet.getRows();
-    const row = rows.find((r) => r.get('id') === id);
+    let sheetName = SHEET_NAMES.MESSAGES;
+    let sheet = await getSheet(sheetName);
+    let rows = await sheet.getRows();
+    let row = rows.find((r) => r.get('id') === id);
+
+    if (!row) {
+      sheetName = SHEET_NAMES.SOCIAL_BOARD;
+      sheet = await getSheet(sheetName);
+      rows = await sheet.getRows();
+      row = rows.find((r) => r.get('id') === id);
+    }
 
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -82,7 +98,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     row.set('content', content.trim());
     await row.save();
-    clearSheetCache(SHEET_NAMES.MESSAGES);
+    clearSheetCache(sheetName);
 
     return NextResponse.json({ success: true, content: content.trim() });
   } catch (error: any) {

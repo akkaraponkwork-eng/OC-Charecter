@@ -28,8 +28,14 @@ export function clearSheetCache(title: string) {
 
 export async function getSheet(title: string): Promise<GoogleSpreadsheetWorksheet & { getCachedRows: () => Promise<any[]> }> {
   const doc = await getDoc();
-  const sheet = doc.sheetsByTitle[title];
-  if (!sheet) throw new Error(`Sheet "${title}" not found`);
+  let sheet = doc.sheetsByTitle[title];
+  if (!sheet) {
+    if (title === 'SocialBoard') {
+      sheet = await doc.addWorksheet({ title, headerValues: ['id', 'chatId', 'senderId', 'senderName', 'senderAvatar', 'content', 'readBy', 'createdAt'] });
+    } else {
+      throw new Error(`Sheet "${title}" not found`);
+    }
+  }
   
   // Attach a cached getRows method to avoid 429 errors
   const getCachedRows = async () => {
@@ -54,6 +60,7 @@ export const SHEET_NAMES = {
   MESSAGES: 'Messages',
   CHAT_GROUPS: 'ChatGroups',
   NOTIFICATIONS: 'Notifications',
+  SOCIAL_BOARD: 'SocialBoard',
 } as const;
 
 export type SheetName = typeof SHEET_NAMES[keyof typeof SHEET_NAMES];

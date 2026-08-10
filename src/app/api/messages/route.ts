@@ -80,7 +80,8 @@ export async function GET(req: NextRequest) {
 
 
   try {
-    const sheet = await getSheet(SHEET_NAMES.MESSAGES);
+    const sheetName = isSocialBoard ? SHEET_NAMES.SOCIAL_BOARD : SHEET_NAMES.MESSAGES;
+    const sheet = await getSheet(sheetName);
     const rows = await sheet.getCachedRows();
     const messages = rows
       .filter((r) => r.get('chatId') === chatId)
@@ -128,7 +129,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const sheet = await getSheet(SHEET_NAMES.MESSAGES);
+    const isSocialBoard = resolvedChatId === 'social_board';
+    const sheetName = isSocialBoard ? SHEET_NAMES.SOCIAL_BOARD : SHEET_NAMES.MESSAGES;
+    const sheet = await getSheet(sheetName);
     const id = uuidv4();
     const senderName = (session.user as any).username || session.user.name || 'Unknown';
     const senderAvatar = (session.user as any).avatarUrl || session.user.image || '';
@@ -140,9 +143,7 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     });
     
-    clearSheetCache(SHEET_NAMES.MESSAGES);
-
-
+    clearSheetCache(sheetName);
 
     return NextResponse.json({ id, chatId: resolvedChatId, senderId: uid, senderName, senderAvatar, content, createdAt: new Date().toISOString() });
   } catch (error: any) {
