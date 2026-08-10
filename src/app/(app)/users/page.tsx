@@ -7,6 +7,7 @@ import { useLocale } from '@/store/useLocale';
 import UniverseCard from '@/components/UniverseCard';
 import CharacterCard from '@/components/CharacterCard';
 import CharacterAlbumStack from '@/components/CharacterAlbumStack';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters' | 'socials'>('users');
@@ -14,11 +15,12 @@ export default function CommunityPage() {
   const [universes, setUniverses] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
   const [socialPosts, setSocialPosts] = useState<any[]>([]);
-  
   const [newPostContent, setNewPostContent] = useState('');
+  const [newPostImage, setNewPostImage] = useState('');
   const [posting, setPosting] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
+  const [editingImage, setEditingImage] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
   
   const { data: session } = useSession();
@@ -55,17 +57,19 @@ export default function CommunityPage() {
   }, []);
 
   const handlePostSubmit = async () => {
-    if (!newPostContent.trim()) return;
+    if (!newPostContent.trim() && !newPostImage) return;
     setPosting(true);
     try {
+      const finalContent = newPostImage ? `${newPostContent.trim()}\n||IMG||\n${newPostImage}` : newPostContent.trim();
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: 'social_board', content: newPostContent.trim() })
+        body: JSON.stringify({ chatId: 'social_board', content: finalContent })
       });
       if (res.ok) {
         const newPost = await res.json();
         setNewPostContent('');
+        setNewPostImage('');
         setSocialPosts(prev => [newPost, ...prev]);
       }
     } catch (error) {
@@ -75,16 +79,17 @@ export default function CommunityPage() {
   };
 
   const handleEditSubmit = async (id: string) => {
-    if (!editingContent.trim() || savingEdit) return;
+    if ((!editingContent.trim() && !editingImage) || savingEdit) return;
     setSavingEdit(true);
     try {
+      const finalContent = editingImage ? `${editingContent.trim()}\n||IMG||\n${editingImage}` : editingContent.trim();
       const res = await fetch(`/api/messages/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: editingContent.trim() })
+        body: JSON.stringify({ content: finalContent })
       });
       if (res.ok) {
-        setSocialPosts(posts => posts.map(p => p.id === id ? { ...p, content: editingContent.trim() } : p));
+        setSocialPosts(posts => posts.map(p => p.id === id ? { ...p, content: finalContent } : p));
         setEditingPostId(null);
       }
     } catch (error) {
@@ -106,9 +111,22 @@ export default function CommunityPage() {
   };
 
   const parseLinks = (text: string) => {
+    const parts = text.split('\n||IMG||\n');
+    const textContent = parts[0] || '';
+    const imageUrl = parts[1] || '';
+    
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.split(urlRegex).map((part, i) => 
+    const renderedText = textContent.split(urlRegex).map((part, i) => 
       urlRegex.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-light)', textDecoration: 'underline' }}>{part}</a> : part
+    );
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-main)' }}>{renderedText}</div>
+        {imageUrl && (
+          <img src={imageUrl} alt="attachment" style={{ maxWidth: '100%', maxHeight: 400, objectFit: 'contain', borderRadius: 'var(--radius)', border: '1px solid var(--glass-border)' }} />
+        )}
+      </div>
     );
   };
 
@@ -306,12 +324,18 @@ export default function CommunityPage() {
                   placeholder="พิมพ์ข้อความแนะนำตัว หรือ โพสต์หาเพื่อน..."
                   style={{ width: '100%', minHeight: 100, padding: '1rem', borderRadius: 'var(--radius)', background: 'var(--bg-main)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', resize: 'vertical' }}
                 />
+                
+                <div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>แนบรูปภาพ (ตัวเลือก)</p>
+                  <ImageUpload onUploaded={url => setNewPostImage(url)} currentUrl={newPostImage} />
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button 
                     onClick={handlePostSubmit}
-                    disabled={!newPostContent.trim() || posting}
+                    disabled={(!newPostContent.trim() && !newPostImage) || posting}
                     className="btn-primary"
-                    style={{ padding: '0.5rem 1.5rem', borderRadius: '99px', opacity: (!newPostContent.trim() || posting) ? 0.5 : 1 }}
+                    style={{ padding: '0.5rem 1.5rem', borderRadius: '99px', opacity: ((!newPostContent.trim() && !newPostImage) || posting) ? 0.5 : 1 }}
                   >
                     {posting ? 'กำลังโพสต์...' : 'โพสต์'}
                   </button>
@@ -331,22 +355,31 @@ export default function CommunityPage() {
                       </Link>
                       {(currentUser?.uid === post.senderId || currentUser?.role === 'admin') && (
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button onClick={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit3 size={16} /></button>
+                          <button onClick={() => { 
+                            const parts = post.content.split('\n||IMG||\n');
+                            setEditingPostId(post.id); 
+                            setEditingContent(parts[0] || ''); 
+                            setEditingImage(parts[1] || '');
+                          }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit3 size={16} /></button>
                           <button onClick={() => handleDeletePost(post.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
                         </div>
                       )}
                     </div>
                     
                     {editingPostId === post.id ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <textarea value={editingContent} onChange={e => setEditingContent(e.target.value)} style={{ width: '100%', minHeight: 80, padding: '0.5rem', borderRadius: 'var(--radius)', background: 'var(--bg-main)', border: '1px solid var(--primary)', color: 'var(--text-main)' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <textarea value={editingContent} onChange={e => setEditingContent(e.target.value)} style={{ width: '100%', minHeight: 80, padding: '0.5rem', borderRadius: 'var(--radius)', background: 'var(--bg-main)', border: '1px solid var(--primary)', color: 'var(--text-main)', resize: 'vertical' }} />
+                        <div>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>เปลี่ยนรูปภาพ</p>
+                          <ImageUpload onUploaded={url => setEditingImage(url)} currentUrl={editingImage} />
+                        </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                           <button onClick={() => setEditingPostId(null)} className="btn-secondary" style={{ padding: '0.25rem 1rem', borderRadius: '99px' }}>ยกเลิก</button>
-                          <button onClick={() => handleEditSubmit(post.id)} className="btn-primary" disabled={savingEdit} style={{ padding: '0.25rem 1rem', borderRadius: '99px' }}>บันทึก</button>
+                          <button onClick={() => handleEditSubmit(post.id)} className="btn-primary" disabled={savingEdit || (!editingContent.trim() && !editingImage)} style={{ padding: '0.25rem 1rem', borderRadius: '99px' }}>บันทึก</button>
                         </div>
                       </div>
                     ) : (
-                      <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-main)' }}>
+                      <div>
                         {parseLinks(post.content)}
                       </div>
                     )}
