@@ -9,19 +9,12 @@ import CharacterCard from '@/components/CharacterCard';
 import CharacterAlbumStack from '@/components/CharacterAlbumStack';
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters' | 'stories'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [universes, setUniverses] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
-  const [socialPosts, setSocialPosts] = useState<any[]>([]);
+  const [stories, setStories] = useState<any[]>([]);
   
-  const [newPostContent, setNewPostContent] = useState('');
-  const [posting, setPosting] = useState(false);
-  
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
-
   const { data: session } = useSession();
   const currentUser = session?.user as any;
   
@@ -33,17 +26,17 @@ export default function CommunityPage() {
   const fetchData = async () => {
     setRefreshing(true);
     try {
-      const [usersRes, uniRes, charRes, socialRes] = await Promise.all([
+      const [usersRes, uniRes, charRes, storiesRes] = await Promise.all([
         fetch('/api/users', { cache: 'no-store' }).then(r => r.json()),
         fetch('/api/community/universes', { cache: 'no-store' }).then(r => r.json()),
         fetch('/api/community/characters', { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/messages?chatId=social_board&t=${Date.now()}`, { cache: 'no-store' }).then(r => r.json())
+        fetch('/api/stories', { cache: 'no-store' }).then(r => r.json())
       ]);
       
       setUsers(Array.isArray(usersRes) ? usersRes : []);
       setUniverses(Array.isArray(uniRes) ? uniRes : []);
       setCharacters(Array.isArray(charRes) ? charRes : []);
-      setSocialPosts(Array.isArray(socialRes) ? socialRes.reverse() : []); // newest first
+      setStories(Array.isArray(storiesRes) ? storiesRes : []);
     } catch (error) {
       console.error('Failed to fetch community data:', error);
     }
@@ -54,65 +47,6 @@ export default function CommunityPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const handlePostSubmit = async () => {
-    if (!newPostContent.trim()) return;
-    setPosting(true);
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: 'social_board', content: newPostContent.trim() })
-      });
-      if (res.ok) {
-        const newPost = await res.json();
-        setNewPostContent('');
-        // Add immediately to top without full refresh
-        setSocialPosts(prev => [newPost, ...prev]);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    setPosting(false);
-  };
-
-  const handleEditSubmit = async (id: string) => {
-    if (!editingContent.trim() || savingEdit) return;
-    setSavingEdit(true);
-    try {
-      const res = await fetch(`/api/messages/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: editingContent.trim() })
-      });
-      if (res.ok) {
-        setSocialPosts(posts => posts.map(p => p.id === id ? { ...p, content: editingContent.trim() } : p));
-        setEditingPostId(null);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    setSavingEdit(false);
-  };
-
-  const handleDeletePost = async (id: string) => {
-    if (!confirm(t('common.delete') + '?')) return;
-    try {
-      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setSocialPosts(posts => posts.filter(p => p.id !== id));
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const parseLinks = (text: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.split(urlRegex).map((part, i) => 
-      urlRegex.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-light)', textDecoration: 'underline' }}>{part}</a> : part
-    );
-  };
 
   const filteredUsers = users.filter(u => 
     u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -173,6 +107,12 @@ export default function CommunityPage() {
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'characters' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'characters' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           <UserIcon size={18} /> {t('community.charactersTab') || 'Characters'} ({characters.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('stories')} 
+          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'stories' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'stories' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
+        >
+          <FolderOpen size={18} /> {t('community.storiesTab') || 'สตอรี่ & สร้างโลก'} ({stories.length})
         </button>
       </div>
 
@@ -294,6 +234,43 @@ export default function CommunityPage() {
                 })()}
               </div>
             )
+          )}
+
+          {activeTab === 'stories' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                <Link href="/story/create" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', borderRadius: '99px', padding: '0.5rem 1.25rem' }}>
+                  <FolderOpen size={16} /> {t('community.createStory') || 'สร้างสตอรี่ใหม่'}
+                </Link>
+              </div>
+              
+              {stories.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                  <FolderOpen size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                  <p>{t('community.noStories') || 'ยังไม่มีใครสร้างสตอรี่เลย มาเริ่มแต่งเรื่องแรกกันเถอะ!'}</p>
+                </div>
+              ) : (
+                <div className="grid-cards">
+                  {stories.map(story => (
+                    <Link href={`/story/${story.id}`} key={story.id} style={{ textDecoration: 'none' }}>
+                      <div className="glass card-hover" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                        {story.coverImage && (
+                          <div style={{ width: '100%', height: 160, borderRadius: 'var(--radius)', backgroundImage: `url(${story.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                        )}
+                        <div>
+                          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>{story.title}</h3>
+                          {story.description && (
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: 0 }}>
+                              {story.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </>
       )}

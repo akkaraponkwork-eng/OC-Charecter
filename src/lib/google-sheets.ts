@@ -32,6 +32,8 @@ export async function getSheet(title: string): Promise<GoogleSpreadsheetWorkshee
   if (!sheet) {
     if (title === 'SocialBoard') {
       sheet = await doc.addSheet({ title, headerValues: ['id', 'chatId', 'senderId', 'senderName', 'senderAvatar', 'content', 'readBy', 'createdAt'] });
+    } else if (title === 'Stories') {
+      sheet = await doc.addSheet({ title, headerValues: ['id', 'authorId', 'title', 'description', 'coverImage', 'isPublic', 'chapters', 'timeline', 'maps', 'characters', 'settings', 'createdAt', 'updatedAt'] });
     } else {
       throw new Error(`Sheet "${title}" not found`);
     }
@@ -61,6 +63,7 @@ export const SHEET_NAMES = {
   CHAT_GROUPS: 'ChatGroups',
   NOTIFICATIONS: 'Notifications',
   SOCIAL_BOARD: 'SocialBoard',
+  STORIES: 'Stories',
 } as const;
 
 export type SheetName = typeof SHEET_NAMES[keyof typeof SHEET_NAMES];
