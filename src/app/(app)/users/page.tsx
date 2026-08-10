@@ -133,11 +133,6 @@ export default function CommunityPage() {
                           }}>
                             {!u.avatarUrl && (u.displayName?.[0] || u.username?.[0] || '?').toUpperCase()}
                           </div>
-                          <div style={{
-                            position: 'absolute', bottom: 4, right: 4, width: 14, height: 14, borderRadius: '50%',
-                            background: u.lastActiveAt && (Date.now() - new Date(u.lastActiveAt).getTime() < 10 * 60 * 1000) ? '#10b981' : '#ef4444',
-                            border: '2px solid var(--bg-main)'
-                          }} title={u.lastActiveAt && (Date.now() - new Date(u.lastActiveAt).getTime() < 10 * 60 * 1000) ? 'Online' : 'Offline'} />
                         </div>
                         <div>
                           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.2rem' }} className={u.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>
