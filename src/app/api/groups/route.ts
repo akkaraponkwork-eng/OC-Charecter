@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const uid = (session.user as any).uid;
 
   try {
-    const { name } = await req.json();
+    const { name, memberIds } = await req.json();
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: 'Group name is required' }, { status: 400 });
     }
@@ -57,14 +57,50 @@ export async function POST(req: NextRequest) {
       id: groupId,
       name,
       ownerId: uid,
-      memberIds: JSON.stringify([uid]),
+      memberIds: JSON.stringify(Array.from(new Set([uid, ...(memberIds || [])]))),
       coverUrl: '',
       createdAt: new Date().toISOString()
     });
 
     clearSheetCache(SHEET_NAMES.CHAT_GROUPS);
 
-    return NextResponse.json({ id: groupId, name, ownerId: uid, memberIds: [uid] });
+    return NextResponse.json({ id: groupId, name, ownerId: uid, memberIds: Array.from(new Set([uid, ...(memberIds || [])])) });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const uid = (session.user as any).uid;
+
+  try {
+    const { groupId, name, memberIds } = await req.json();
+    if (!groupId) return NextResponse.json({ error: 'groupId is required' }, { status: 400 });
+
+    const groupSheet = await getSheet(SHEET_NAMES.CHAT_GROUPS);
+    const groups = await groupSheet.getCachedRows();
+    const group = groups.find(r => r.get('id') === groupId);
+
+    if (!group) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+
+    const admin = await checkAdmin(uid);
+    if (group.get('ownerId') !== uid && !admin) {
+      return NextResponse.json({ error: 'Only the group owner or admin can update this group' }, { status: 403 });
+    }
+
+    if (name) group.set('name', name);
+    if (Array.isArray(memberIds)) {
+      // Ensure owner is always in the group
+      const newMembers = Array.from(new Set([group.get('ownerId'), ...memberIds]));
+      group.set('memberIds', JSON.stringify(newMembers));
+    }
+    
+    await group.save();
+    clearSheetCache(SHEET_NAMES.CHAT_GROUPS);
+
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
