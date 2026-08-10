@@ -8,7 +8,14 @@ export async function GET() {
 
   try {
     const sheet = await getSheet(SHEET_NAMES.UNIVERSES);
+    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+    
     const rows = await sheet.getCachedRows();
+    const collabRows = await collabSheet.getCachedRows();
+    
+    const universesWithCollaborators = new Set(
+      collabRows.filter(r => r.get('status') === 'accepted').map(r => r.get('universeId'))
+    );
 
     const universes = rows.map((r) => ({
       id: r.get('id'),
@@ -18,6 +25,7 @@ export async function GET() {
       coverUrl: r.get('coverUrl'),
       isPublic: true,
       createdAt: r.get('createdAt'),
+      hasCollaborators: universesWithCollaborators.has(r.get('id')),
     }));
 
     return NextResponse.json(universes);

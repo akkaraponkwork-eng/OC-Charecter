@@ -18,10 +18,15 @@ export async function GET() {
     const rows = await sheet.getCachedRows();
     const collabRows = await collabSheet.getCachedRows();
 
+    const acceptedCollabRows = collabRows.filter((r) => r.get('status') === 'accepted');
+
     // Universes I own OR collaborate in
-    const collabUniverseIds = collabRows
-      .filter((r) => r.get('userId') === uid && r.get('status') === 'accepted')
+    const collabUniverseIds = acceptedCollabRows
+      .filter((r) => r.get('userId') === uid)
       .map((r) => r.get('universeId'));
+      
+    // All universes that have at least one accepted collaborator
+    const universesWithCollaborators = new Set(acceptedCollabRows.map(r => r.get('universeId')));
 
     const universes = rows
       .filter((r) => isAdmin || r.get('userId') === uid || collabUniverseIds.includes(r.get('id')))
@@ -44,6 +49,7 @@ export async function GET() {
           isPublic: true,
           createdAt: r.get('createdAt'),
           isCollaborator: collabUniverseIds.includes(r.get('id')),
+          hasCollaborators: universesWithCollaborators.has(r.get('id')),
           stories: parsedStories,
         };
       });
