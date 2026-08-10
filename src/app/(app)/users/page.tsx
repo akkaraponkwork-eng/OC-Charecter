@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Search, RefreshCw, FolderOpen, User as UserIcon } from 'lucide-react';
+import { Users, Search, RefreshCw, FolderOpen, User as UserIcon, Send, Trash2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
 import UniverseCard from '@/components/UniverseCard';
 import CharacterCard from '@/components/CharacterCard';
@@ -12,6 +13,12 @@ export default function CommunityPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [universes, setUniverses] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
+  const [socialPosts, setSocialPosts] = useState<any[]>([]);
+  
+  const [newPostContent, setNewPostContent] = useState('');
+  const [posting, setPosting] = useState(false);
+  const { data: session } = useSession();
+  const currentUser = session?.user as any;
   
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -21,15 +28,17 @@ export default function CommunityPage() {
   const fetchData = async () => {
     setRefreshing(true);
     try {
-      const [usersRes, uniRes, charRes] = await Promise.all([
+      const [usersRes, uniRes, charRes, socialRes] = await Promise.all([
         fetch('/api/users').then(r => r.json()),
         fetch('/api/community/universes').then(r => r.json()),
-        fetch('/api/community/characters').then(r => r.json())
+        fetch('/api/community/characters').then(r => r.json()),
+        fetch('/api/messages?chatId=social_board').then(r => r.json())
       ]);
       
       setUsers(Array.isArray(usersRes) ? usersRes : []);
       setUniverses(Array.isArray(uniRes) ? uniRes : []);
       setCharacters(Array.isArray(charRes) ? charRes : []);
+      setSocialPosts(Array.isArray(socialRes) ? socialRes.reverse() : []); // newest first
     } catch (error) {
       console.error('Failed to fetch community data:', error);
     }
@@ -40,6 +49,44 @@ export default function CommunityPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handlePostSubmit = async () => {
+    if (!newPostContent.trim()) return;
+    setPosting(true);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId: 'social_board', content: newPostContent.trim() })
+      });
+      if (res.ok) {
+        setNewPostContent('');
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    setPosting(false);
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (!confirm(t('common.delete') + '?')) return;
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSocialPosts(posts => posts.filter(p => p.id !== id));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const parseLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => 
+      urlRegex.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-light)', textDecoration: 'underline' }}>{part}</a> : part
+    );
+  };
 
   const filteredUsers = users.filter(u => 
     u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -221,82 +268,99 @@ export default function CommunityPage() {
           )}
 
           {activeTab === 'socials' && (
-            <div style={{ padding: '0 0.5rem' }}>
-              <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', textAlign: 'center', background: 'linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1))', border: '1px solid rgba(124, 58, 237, 0.2)' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>{t('community.socialsTitle') || '🤝 หาเพื่อน แลกไอดี และร่วมคอลแลป!'}</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', maxWidth: '600px', margin: '0 auto 1rem' }}>
-                  {t('community.socialsDesc') || 'บอร์ดนี้รวมโปรไฟล์ของคนในคอมมูนิตี้ที่เปิดรับการพูดคุยและแลกเปลี่ยนคอนแทค อยากให้คนอื่นเห็นคุณที่นี่ไหม?'}
-                </p>
-                <Link href="/profile/me" className="btn-primary" style={{ display: 'inline-block', padding: '0.6rem 1.25rem', borderRadius: '99px', textDecoration: 'none' }}>
-                  {t('community.goToProfile') || 'ไปกรอกข้อมูลในโปรไฟล์ของคุณเลย'}
-                </Link>
+            <div style={{ padding: '0 0.5rem', maxWidth: 800, margin: '0 auto' }}>
+              <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', background: 'linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1))', border: '1px solid rgba(124, 58, 237, 0.2)' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  🤝 {t('community.socialsTitle') || 'หาเพื่อน แลกไอดี และร่วมคอลแลป!'}
+                </h2>
+                
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
+                    background: currentUser?.avatarUrl || currentUser?.image ? `url(${currentUser.avatarUrl || currentUser.image}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.2rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
+                  }}>
+                    {!(currentUser?.avatarUrl || currentUser?.image) && (currentUser?.name?.[0] || currentUser?.username?.[0] || '?').toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <textarea 
+                      placeholder="เขียนแนะนำตัว ฝากช่องทางติดต่อ หรือแปะลิ้งก์ที่นี่..."
+                      value={newPostContent}
+                      onChange={e => setNewPostContent(e.target.value)}
+                      style={{
+                        width: '100%', minHeight: '80px', padding: '0.75rem 1rem', borderRadius: 'var(--radius)',
+                        border: '1px solid var(--glass-border)', background: 'var(--bg-main)', color: 'var(--text-main)',
+                        resize: 'vertical', fontSize: '0.9rem', outline: 'none', marginBottom: '0.5rem'
+                      }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button 
+                        onClick={handlePostSubmit} 
+                        disabled={posting || !newPostContent.trim()}
+                        className="btn-primary" 
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '99px', opacity: (!newPostContent.trim() || posting) ? 0.5 : 1 }}
+                      >
+                        <Send size={14} /> โพสต์
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {filteredUsers.filter(u => u.bio || (u.socialLinks && Object.values(u.socialLinks).some(v => v))).length === 0 ? (
+              {socialPosts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                   <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                  <p>{t('community.emptySocials') || 'ยังไม่มีใครเขียนแนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!'}</p>
+                  <p>{t('community.emptySocials') || 'ยังไม่มีใครโพสต์แนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!'}</p>
                 </div>
               ) : (
-                <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
-                  {filteredUsers
-                    .filter(u => u.bio || (u.socialLinks && Object.values(u.socialLinks).some(v => v)))
-                    .map((u) => (
-                      <div key={u.uid} className="glass card-hover" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                          <Link href={`/profile/${u.uid}`} style={{ textDecoration: 'none' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {socialPosts.map((post) => {
+                    const isAuthor = currentUser?.uid === post.senderId || currentUser?.role === 'admin';
+                    return (
+                      <div key={post.id} className="glass card-hover" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
+                        {isAuthor && (
+                          <button onClick={() => handleDeletePost(post.id)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                          <Link href={`/profile/${post.senderId}`} style={{ textDecoration: 'none' }}>
                             <div style={{
-                              width: 60, height: 60, borderRadius: '50%', flexShrink: 0,
-                              background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                              width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
+                              background: post.senderAvatar ? `url(${post.senderAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '1.5rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
+                              fontSize: '1.25rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
                             }}>
-                              {!u.avatarUrl && (u.displayName?.[0] || u.username?.[0] || '?').toUpperCase()}
+                              {!post.senderAvatar && (post.senderName?.[0] || '?').toUpperCase()}
                             </div>
                           </Link>
-                          <div>
-                            <Link href={`/profile/${u.uid}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.1rem' }} className={u.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>
-                                {u.displayName || u.username}
-                              </h3>
-                              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>@{u.username}</p>
-                            </Link>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                              <Link href={`/profile/${post.senderId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+                                  {post.senderName}
+                                </h3>
+                              </Link>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)' }}>
+                                {new Date(post.createdAt).toLocaleDateString()} {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            
+                            <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: '1rem' }}>
+                              {parseLinks(post.content)}
+                            </div>
+                            
+                            <div style={{ display: 'flex' }}>
+                              <Link href={`/messages?userId=${post.senderId}`} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>
+                                {t('profile.sendMessage') || 'ส่งข้อความ'}
+                              </Link>
+                            </div>
                           </div>
-                        </div>
-                        
-                        {u.bio && (
-                          <div style={{ background: 'var(--bg-elevated)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontSize: '0.85rem', color: 'var(--text-main)', borderLeft: '3px solid var(--primary)', fontStyle: 'italic' }}>
-                            "{u.bio}"
-                          </div>
-                        )}
-                        
-                        {(u.socialLinks?.twitter || u.socialLinks?.instagram || u.socialLinks?.discord) && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: 'auto', paddingTop: '0.5rem' }}>
-                            {u.socialLinks?.twitter && (
-                              <a href={`https://twitter.com/${u.socialLinks.twitter}`} target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(29, 161, 242, 0.1)', color: '#1DA1F2', padding: '0.3rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', textDecoration: 'none', fontWeight: 600 }}>
-                                X: {u.socialLinks.twitter}
-                              </a>
-                            )}
-                            {u.socialLinks?.instagram && (
-                              <a href={`https://instagram.com/${u.socialLinks.instagram}`} target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(225, 48, 108, 0.1)', color: '#E1306C', padding: '0.3rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', textDecoration: 'none', fontWeight: 600 }}>
-                                IG: {u.socialLinks.instagram}
-                              </a>
-                            )}
-                            {u.socialLinks?.discord && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(88, 101, 242, 0.1)', color: '#5865F2', padding: '0.3rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 600 }}>
-                                Discord: {u.socialLinks.discord}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <Link href={`/messages?userId=${u.uid}`} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.6rem', borderRadius: '8px', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
-                            {t('profile.sendMessage') || 'ส่งข้อความ'}
-                          </Link>
                         </div>
                       </div>
-                    ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

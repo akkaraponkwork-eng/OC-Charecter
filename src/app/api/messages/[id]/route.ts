@@ -30,9 +30,14 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const isPublicChat = chatId === 'public';
     const isDmParticipant = chatId.startsWith('dm_') && chatId.includes(uid);
     
-    // Allow deletion if: Public Chat OR User is Admin OR User is the Sender OR User is a participant in this DM
-    if (!isPublicChat && !isAdmin && row.get('senderId') !== uid && !isDmParticipant) {
-      return NextResponse.json({ error: 'Forbidden: You cannot delete this message' }, { status: 403 });
+    // Allow deletion if: User is Admin OR (Public Chat -> Admin Only) OR User is the Sender OR User is a participant in this DM
+    if (!isAdmin) {
+      if (isPublicChat) {
+        return NextResponse.json({ error: 'Forbidden: Only admin can delete public chat messages' }, { status: 403 });
+      }
+      if (row.get('senderId') !== uid && !isDmParticipant) {
+        return NextResponse.json({ error: 'Forbidden: You cannot delete this message' }, { status: 403 });
+      }
     }
 
     await row.delete();
