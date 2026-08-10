@@ -9,10 +9,17 @@ import CharacterCard from '@/components/CharacterCard';
 import CharacterAlbumStack from '@/components/CharacterAlbumStack';
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters' | 'socials'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [universes, setUniverses] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
+  const [socialPosts, setSocialPosts] = useState<any[]>([]);
+  
+  const [newPostContent, setNewPostContent] = useState('');
+  const [posting, setPosting] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   
   const { data: session } = useSession();
   const currentUser = session?.user as any;
@@ -25,15 +32,17 @@ export default function CommunityPage() {
   const fetchData = async () => {
     setRefreshing(true);
     try {
-      const [usersRes, uniRes, charRes] = await Promise.all([
+      const [usersRes, uniRes, charRes, socialRes] = await Promise.all([
         fetch('/api/users', { cache: 'no-store' }).then(r => r.json()),
         fetch('/api/community/universes', { cache: 'no-store' }).then(r => r.json()),
-        fetch('/api/community/characters', { cache: 'no-store' }).then(r => r.json())
+        fetch('/api/community/characters', { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/messages?chatId=social_board&t=${Date.now()}`, { cache: 'no-store' }).then(r => r.json())
       ]);
       
       setUsers(Array.isArray(usersRes) ? usersRes : []);
       setUniverses(Array.isArray(uniRes) ? uniRes : []);
       setCharacters(Array.isArray(charRes) ? charRes : []);
+      setSocialPosts(Array.isArray(socialRes) ? socialRes.reverse() : []);
     } catch (error) {
       console.error('Failed to fetch community data:', error);
     }
@@ -44,6 +53,64 @@ export default function CommunityPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handlePostSubmit = async () => {
+    if (!newPostContent.trim()) return;
+    setPosting(true);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId: 'social_board', content: newPostContent.trim() })
+      });
+      if (res.ok) {
+        const newPost = await res.json();
+        setNewPostContent('');
+        setSocialPosts(prev => [newPost, ...prev]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    setPosting(false);
+  };
+
+  const handleEditSubmit = async (id: string) => {
+    if (!editingContent.trim() || savingEdit) return;
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`/api/messages/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editingContent.trim() })
+      });
+      if (res.ok) {
+        setSocialPosts(posts => posts.map(p => p.id === id ? { ...p, content: editingContent.trim() } : p));
+        setEditingPostId(null);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    setSavingEdit(false);
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (!confirm(t('common.delete') + '?')) return;
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSocialPosts(posts => posts.filter(p => p.id !== id));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const parseLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => 
+      urlRegex.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-light)', textDecoration: 'underline' }}>{part}</a> : part
+    );
+  };
 
   const filteredUsers = users.filter(u => 
     u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -104,6 +171,12 @@ export default function CommunityPage() {
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'characters' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'characters' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           <UserIcon size={18} /> {t('community.charactersTab') || 'Characters'} ({characters.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('socials')} 
+          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'socials' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'socials' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
+        >
+          <MessageCircle size={18} /> หาเพื่อน & แนะนำตัว
         </button>
       </div>
 
@@ -220,6 +293,74 @@ export default function CommunityPage() {
                 })()}
               </div>
             )
+          )}
+
+          {activeTab === 'socials' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 800, margin: '0 auto', width: '100%' }}>
+              <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>พื้นที่หาเพื่อน & แนะนำตัว</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>แนะนำตัวให้ทุกคนรู้จัก หรือตามหาเพื่อนร่วมแต่งเนื้อเรื่องได้ที่นี่เลย!</p>
+                <textarea
+                  value={newPostContent}
+                  onChange={e => setNewPostContent(e.target.value)}
+                  placeholder="พิมพ์ข้อความแนะนำตัว หรือ โพสต์หาเพื่อน..."
+                  style={{ width: '100%', minHeight: 100, padding: '1rem', borderRadius: 'var(--radius)', background: 'var(--bg-main)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', resize: 'vertical' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button 
+                    onClick={handlePostSubmit}
+                    disabled={!newPostContent.trim() || posting}
+                    className="btn-primary"
+                    style={{ padding: '0.5rem 1.5rem', borderRadius: '99px', opacity: (!newPostContent.trim() || posting) ? 0.5 : 1 }}
+                  >
+                    {posting ? 'กำลังโพสต์...' : 'โพสต์'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {socialPosts.map(post => (
+                  <div key={post.id} className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                      <Link href={`/profile/${post.senderId}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: post.senderAvatar ? `url(${post.senderAvatar}) center/cover` : 'var(--primary)', flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{post.senderName}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-subtle)' }}>{new Date(post.createdAt).toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')}</div>
+                        </div>
+                      </Link>
+                      {(currentUser?.uid === post.senderId || currentUser?.role === 'admin') && (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => { setEditingPostId(post.id); setEditingContent(post.content); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit3 size={16} /></button>
+                          <button onClick={() => handleDeletePost(post.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {editingPostId === post.id ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <textarea value={editingContent} onChange={e => setEditingContent(e.target.value)} style={{ width: '100%', minHeight: 80, padding: '0.5rem', borderRadius: 'var(--radius)', background: 'var(--bg-main)', border: '1px solid var(--primary)', color: 'var(--text-main)' }} />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                          <button onClick={() => setEditingPostId(null)} className="btn-secondary" style={{ padding: '0.25rem 1rem', borderRadius: '99px' }}>ยกเลิก</button>
+                          <button onClick={() => handleEditSubmit(post.id)} className="btn-primary" disabled={savingEdit} style={{ padding: '0.25rem 1rem', borderRadius: '99px' }}>บันทึก</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-main)' }}>
+                        {parseLinks(post.content)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {socialPosts.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                    <MessageCircle size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                    <p>ยังไม่มีโพสต์หาเพื่อน เริ่มพิมพ์แนะนำตัวเป็นคนแรกเลย!</p>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </>
       )}
