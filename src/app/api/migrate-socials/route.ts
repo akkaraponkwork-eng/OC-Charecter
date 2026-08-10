@@ -7,7 +7,7 @@ export async function GET() {
     const socialSheet = await getSheet(SHEET_NAMES.SOCIAL_BOARD);
 
     const messagesRows = await messagesSheet.getRows();
-    
+
     // Find all social_board posts in messages sheet
     const socialPosts = messagesRows.filter(r => r.get('chatId') === 'social_board');
 
