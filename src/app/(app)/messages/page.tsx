@@ -66,7 +66,7 @@ function MessagesContent() {
   }, [userIdFromUrl, uid]);
 
   const deleteGroup = async (groupId: string, groupName: string) => {
-    if (!confirm(`ลบกลุ่ม "${groupName}" ใช่ไหม? ข้อความทั้งหมดในกลุ่มจะถูกลบด้วย`)) return;
+    if (!confirm(`${t('chat.deleteGroup')} "${groupName}"?`)) return;
     const res = await fetch('/api/groups', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -83,7 +83,7 @@ function MessagesContent() {
   };
 
   const leaveGroup = async (groupId: string, groupName: string) => {
-    if (!confirm(`ออกจากกลุ่ม "${groupName}" ใช่ไหม?`)) return;
+    if (!confirm(`${t('chat.leaveGroup')} "${groupName}"?`)) return;
     const res = await fetch(`/api/groups/${groupId}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -162,7 +162,7 @@ function MessagesContent() {
                 {chat.latestMessage.senderName}: {chat.latestMessage.content?.startsWith('[IMG]') ? '📷 รูปภาพ' : chat.latestMessage.content}
               </div>
             ) : (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', fontStyle: 'italic' }}>ยังไม่มีข้อความ</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', fontStyle: 'italic' }}>{t('chat.noMessages') || 'ยังไม่มีข้อความ'}</div>
             )}
           </div>
         </button>
@@ -174,7 +174,7 @@ function MessagesContent() {
               <button
                 onClick={(e) => { e.stopPropagation(); setManagingGroup(chat); }}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
-                title="แก้ไขและจัดการสมาชิก"
+                title={t('chat.manageMembers') || "แก้ไขและจัดการสมาชิก"}
               >
                 <Pencil size={14} />
               </button>
@@ -184,7 +184,7 @@ function MessagesContent() {
               <button
                 onClick={(e) => { e.stopPropagation(); deleteGroup(chat.id, chat.title); }}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
-                title="ลบกลุ่ม"
+                title={t('chat.deleteGroup') || "ลบกลุ่ม"}
               >
                 <Trash2 size={14} />
               </button>
@@ -192,7 +192,7 @@ function MessagesContent() {
               <button
                 onClick={(e) => { e.stopPropagation(); leaveGroup(chat.id, chat.title); }}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
-                title="ออกจากกลุ่ม"
+                title={t('chat.leaveGroup') || "ออกจากกลุ่ม"}
               >
                 <LogOut size={14} />
               </button>
@@ -222,7 +222,7 @@ function MessagesContent() {
               )}
             </button>
             <button style={tabStyle('groups') as any} onClick={() => setActiveTab('groups')}>
-              <Users size={13} /> กลุ่ม
+              <Users size={13} /> {t('chat.groups') || 'กลุ่ม'}
               {groupChats.filter(c => c.isUnread).length > 0 && (
                 <span style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', width: 16, height: 16, fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {groupChats.filter(c => c.isUnread).length}
@@ -230,7 +230,7 @@ function MessagesContent() {
               )}
             </button>
             <button style={tabStyle('public') as any} onClick={() => setActiveTab('public')}>
-              <Globe size={13} /> สาธารณะ
+              <Globe size={13} /> {t('chat.public') || 'สาธารณะ'}
             </button>
           </div>
         </div>
@@ -242,8 +242,7 @@ function MessagesContent() {
             <>
               {dmChats.length === 0 ? (
                 <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>
-                  ยังไม่มีการสนทนา<br />
-                  <span style={{ fontSize: '0.75rem' }}>เริ่มแชทจากโปรไฟล์ผู้ใช้</span>
+                  {t('chat.noMessages') || 'ยังไม่มีการสนทนา'}
                 </p>
               ) : (
                 dmChats.map(chat => renderChatItem(chat))
@@ -260,13 +259,13 @@ function MessagesContent() {
                   className="btn-primary"
                   style={{ width: '100%', padding: '0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                 >
-                  <Plus size={15} /> สร้างกลุ่มใหม่
+                  <Plus size={15} /> {t('chat.createGroupBtn') || 'สร้างกลุ่มใหม่'}
                 </button>
               </div>
               {groupChats.length === 0 ? (
                 <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>
-                  ยังไม่มีกลุ่มแชท<br />
-                  <span style={{ fontSize: '0.75rem' }}>กดสร้างกลุ่มใหม่ด้านบน</span>
+                  {t('chat.noGroupChats') || 'ยังไม่มีกลุ่มแชท'}<br />
+                  <span style={{ fontSize: '0.75rem' }}>{t('chat.createGroupPrompt') || 'กดสร้างกลุ่มใหม่ด้านบน'}</span>
                 </p>
               ) : (
                 groupChats.map(chat => renderChatItem(chat))
@@ -280,13 +279,13 @@ function MessagesContent() {
               {publicChat ? (
                 <div>
                   <div style={{ padding: '0.75rem 1.25rem', fontSize: '0.75rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)' }}>
-                    🌐 แชทสาธารณะสำหรับทุกคน
-                    {isAdmin && <span style={{ marginLeft: 6, color: 'var(--primary)', fontWeight: 600 }}>· คุณเป็น Admin</span>}
+                    🌐 {t('chat.publicDesc') || 'แชทสาธารณะสำหรับทุกคน'}
+                    {isAdmin && <span style={{ marginLeft: 6, color: 'var(--primary)', fontWeight: 600 }}>· {t('chat.youAreAdmin') || 'คุณเป็น Admin'}</span>}
                   </div>
                   {renderChatItem(publicChat)}
                 </div>
               ) : (
-                <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>กำลังโหลด...</p>
+                <p style={{ padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>{t('common.loading') || 'กำลังโหลด...'}</p>
               )}
             </>
           )}

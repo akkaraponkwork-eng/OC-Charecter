@@ -93,6 +93,16 @@ const th = {
     directMessages: 'ข้อความส่วนตัว',
     universeChats: 'แชทจักรวาล',
     search: 'ค้นหาการสนทนา...',
+    groups: 'กลุ่ม',
+    public: 'สาธารณะ',
+    publicDesc: 'แชทสาธารณะสำหรับทุกคน',
+    youAreAdmin: 'คุณเป็น Admin',
+    noGroupChats: 'ยังไม่มีกลุ่มแชท',
+    createGroupPrompt: 'กดสร้างกลุ่มใหม่ด้านบน',
+    createGroupBtn: 'สร้างกลุ่มใหม่',
+    manageMembers: 'แก้ไขและจัดการสมาชิก',
+    deleteGroup: 'ลบกลุ่ม',
+    leaveGroup: 'ออกจากกลุ่ม',
   },
   // Invitations
   invitations: {
@@ -114,6 +124,14 @@ const th = {
     role: 'บทบาท',
     user: 'ผู้ใช้',
     admin: 'ผู้ดูแล',
+  },
+  // Community
+  community: {
+    socialsTab: 'หาเพื่อน & แลกโซเชียล',
+    socialsTitle: '🤝 หาเพื่อน แลกไอดี และร่วมคอลแลป!',
+    socialsDesc: 'บอร์ดนี้รวมโปรไฟล์ของคนในคอมมูนิตี้ที่เปิดรับการพูดคุยและแลกเปลี่ยนคอนแทค อยากให้คนอื่นเห็นคุณที่นี่ไหม?',
+    goToProfile: 'ไปกรอกข้อมูลในโปรไฟล์ของคุณเลย',
+    emptySocials: 'ยังไม่มีใครเขียนแนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!',
   },
   // Common
   common: {

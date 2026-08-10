@@ -105,7 +105,7 @@ export default function CommunityPage() {
           onClick={() => setActiveTab('socials')} 
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'socials' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'socials' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
-          <Users size={18} /> หาเพื่อน & แลกโซเชียล
+          <Users size={18} /> {t('community.socialsTab') || 'หาเพื่อน & แลกโซเชียล'}
         </button>
       </div>
 
@@ -223,19 +223,19 @@ export default function CommunityPage() {
           {activeTab === 'socials' && (
             <div style={{ padding: '0 0.5rem' }}>
               <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', textAlign: 'center', background: 'linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1))', border: '1px solid rgba(124, 58, 237, 0.2)' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>🤝 หาเพื่อน แลกไอดี และร่วมคอลแลป!</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>{t('community.socialsTitle') || '🤝 หาเพื่อน แลกไอดี และร่วมคอลแลป!'}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', maxWidth: '600px', margin: '0 auto 1rem' }}>
-                  บอร์ดนี้รวมโปรไฟล์ของคนในคอมมูนิตี้ที่เปิดรับการพูดคุยและแลกเปลี่ยนคอนแทค อยากให้คนอื่นเห็นคุณที่นี่ไหม?
+                  {t('community.socialsDesc') || 'บอร์ดนี้รวมโปรไฟล์ของคนในคอมมูนิตี้ที่เปิดรับการพูดคุยและแลกเปลี่ยนคอนแทค อยากให้คนอื่นเห็นคุณที่นี่ไหม?'}
                 </p>
                 <Link href="/profile/me" className="btn-primary" style={{ display: 'inline-block', padding: '0.6rem 1.25rem', borderRadius: '99px', textDecoration: 'none' }}>
-                  ไปกรอกข้อมูลในโปรไฟล์ของคุณเลย
+                  {t('community.goToProfile') || 'ไปกรอกข้อมูลในโปรไฟล์ของคุณเลย'}
                 </Link>
               </div>
 
               {filteredUsers.filter(u => u.bio || (u.socialLinks && Object.values(u.socialLinks).some(v => v))).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                   <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                  <p>ยังไม่มีใครเขียนแนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!</p>
+                  <p>{t('community.emptySocials') || 'ยังไม่มีใครเขียนแนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!'}</p>
                 </div>
               ) : (
                 <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
@@ -292,7 +292,7 @@ export default function CommunityPage() {
                         
                         <div style={{ marginTop: '0.5rem' }}>
                           <Link href={`/messages?userId=${u.uid}`} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.6rem', borderRadius: '8px', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
-                            ส่งข้อความทักทาย
+                            {t('profile.sendMessage') || 'ส่งข้อความ'}
                           </Link>
                         </div>
                       </div>

@@ -93,6 +93,16 @@ const en = {
     directMessages: 'Direct Messages',
     universeChats: 'Universe Chats',
     search: 'Search conversations...',
+    groups: 'Groups',
+    public: 'Public',
+    publicDesc: 'Public chat for everyone',
+    youAreAdmin: 'You are an Admin',
+    noGroupChats: 'No group chats yet',
+    createGroupPrompt: 'Click create new group above',
+    createGroupBtn: 'Create new group',
+    manageMembers: 'Edit and manage members',
+    deleteGroup: 'Delete group',
+    leaveGroup: 'Leave group',
   },
   // Invitations
   invitations: {
@@ -114,6 +124,14 @@ const en = {
     role: 'Role',
     user: 'User',
     admin: 'Admin',
+  },
+  // Community
+  community: {
+    socialsTab: 'Find Friends & Socials',
+    socialsTitle: '🤝 Find Friends, Exchange IDs & Collab!',
+    socialsDesc: 'This board gathers community profiles open for chatting and exchanging contacts. Want to be seen here?',
+    goToProfile: 'Fill out your profile now',
+    emptySocials: 'No one has introduced themselves yet. Be the first!',
   },
   // Common
   common: {
