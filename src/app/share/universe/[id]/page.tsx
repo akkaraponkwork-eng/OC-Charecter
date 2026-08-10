@@ -1,8 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Globe, Book, Users, Link as LinkIcon } from 'lucide-react';
+import { Globe, Book, Users, Link as LinkIcon, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import StoryCard from '@/components/StoryCard';
+import { auth } from '@/auth';
+import { getSheet, SHEET_NAMES } from '@/lib/google-sheets';
 
 async function getUniverse(id: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -33,6 +35,23 @@ export default async function PublicUniversePage({ params }: { params: Promise<{
   const universe = await getUniverse(id);
   if (!universe) notFound();
 
+  const session = await auth();
+  const uid = (session?.user as any)?.uid;
+  const isAdmin = (session?.user as any)?.role === 'admin';
+  const isOwner = uid === universe.creatorUid;
+  
+  let isCollaborator = false;
+  if (uid && !isOwner && !isAdmin) {
+    try {
+      const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+      const collabRows = await collabSheet.getCachedRows();
+      isCollaborator = collabRows.some(
+        (r) => r.get('universeId') === id && r.get('userId') === uid && r.get('status') === 'accepted'
+      );
+    } catch(e) {}
+  }
+  const canEdit = isOwner || isAdmin || isCollaborator;
+
   const stories = universe.stories || [];
   const characters = universe.characters || [];
 
@@ -53,6 +72,13 @@ export default async function PublicUniversePage({ params }: { params: Promise<{
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
               by <a href={`/profile/${universe.creatorUid}`} style={{ color: 'var(--accent)', textDecoration: 'none' }}>{universe.creatorName}</a>
             </p>
+            {canEdit && (
+              <div style={{ marginTop: '1rem' }}>
+                <Link href={`/universes/${id}`} className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                  <Pencil size={16} /> เข้าสู่โหมดจัดการจักรวาล (Manage Universe)
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
