@@ -3,6 +3,8 @@ const th = {
   // Navigation
   nav: {
     dashboard: 'หน้าหลัก',
+    characters: 'ตัวละคร',
+    community: 'คอมมูนิตี้',
     messages: 'ข้อความ',
     invitations: 'คำเชิญ',
     profile: 'โปรไฟล์',
@@ -127,6 +129,14 @@ const th = {
   },
   // Community
   community: {
+    title: 'คอมมูนิตี้',
+    creatorsTab: 'ผู้สร้างสรรค์',
+    universesTab: 'จักรวาล',
+    charactersTab: 'ตัวละคร',
+    search: 'ค้นหา',
+    noCreators: 'ไม่พบผู้สร้างสรรค์',
+    noUniverses: 'ไม่พบจักรวาล',
+    noCharacters: 'ไม่พบตัวละคร',
     socialsTab: 'หาเพื่อน & แลกโซเชียล',
     socialsTitle: '🤝 หาเพื่อน แลกไอดี และร่วมคอลแลป!',
     socialsDesc: 'บอร์ดนี้รวมโปรไฟล์ของคนในคอมมูนิตี้ที่เปิดรับการพูดคุยและแลกเปลี่ยนคอนแทค อยากให้คนอื่นเห็นคุณที่นี่ไหม?',

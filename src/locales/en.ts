@@ -3,6 +3,8 @@ const en = {
   // Navigation
   nav: {
     dashboard: 'Dashboard',
+    characters: 'Characters',
+    community: 'Community',
     messages: 'Messages',
     invitations: 'Invitations',
     profile: 'Profile',
@@ -127,6 +129,14 @@ const en = {
   },
   // Community
   community: {
+    title: 'Community',
+    creatorsTab: 'Creators',
+    universesTab: 'Universes',
+    charactersTab: 'Characters',
+    search: 'Search',
+    noCreators: 'No creators found.',
+    noUniverses: 'No universes found.',
+    noCharacters: 'No characters found.',
     socialsTab: 'Find Friends & Socials',
     socialsTitle: '🤝 Find Friends, Exchange IDs & Collab!',
     socialsDesc: 'This board gathers community profiles open for chatting and exchanging contacts. Want to be seen here?',

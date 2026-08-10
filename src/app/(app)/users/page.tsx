@@ -58,14 +58,14 @@ export default function CommunityPage() {
     <div className="page-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div className="section-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Users size={32} className="text-primary" /> Community
+          <Users size={32} className="text-primary" /> {t('community.title') || 'Community'}
         </h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div style={{ position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
               type="text" 
-              placeholder={`Search ${activeTab}...`}
+              placeholder={`${t('community.search') || 'Search'}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ padding: '0.5rem 0.75rem 0.5rem 2.25rem', borderRadius: '20px', border: '1px solid var(--glass-border)', background: 'var(--glass)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', width: '250px' }}
@@ -87,19 +87,19 @@ export default function CommunityPage() {
           onClick={() => setActiveTab('users')} 
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'users' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'users' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
-          <Users size={18} /> Creators ({users.length})
+          <Users size={18} /> {t('community.creatorsTab') || 'Creators'} ({users.length})
         </button>
         <button 
           onClick={() => setActiveTab('universes')} 
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'universes' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'universes' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
-          <FolderOpen size={18} /> Universes ({universes.length})
+          <FolderOpen size={18} /> {t('community.universesTab') || 'Universes'} ({universes.length})
         </button>
         <button 
           onClick={() => setActiveTab('characters')} 
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'characters' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'characters' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
-          <UserIcon size={18} /> Characters ({characters.length})
+          <UserIcon size={18} /> {t('community.charactersTab') || 'Characters'} ({characters.length})
         </button>
         <button 
           onClick={() => setActiveTab('socials')} 
@@ -118,7 +118,7 @@ export default function CommunityPage() {
           {activeTab === 'users' && (
             filteredUsers.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-                <p>No creators found.</p>
+                <p>{t('community.noCreators') || 'No creators found.'}</p>
               </div>
             ) : (
               <div className="grid-cards">
@@ -155,7 +155,7 @@ export default function CommunityPage() {
             filteredUniverses.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                 <FolderOpen size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                <p>No universes found.</p>
+                <p>{t('community.noUniverses') || 'No universes found.'}</p>
               </div>
             ) : (
               <div className="grid-cards">
@@ -170,7 +170,7 @@ export default function CommunityPage() {
             filteredCharacters.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                 <UserIcon size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                <p>No characters found.</p>
+                <p>{t('community.noCharacters') || 'No characters found.'}</p>
               </div>
             ) : (
               <div className="grid-cards">
