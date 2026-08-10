@@ -5,25 +5,27 @@ import { useLocale } from '@/store/useLocale';
 import { useStore } from '@/store/useStore';
 import CharacterCard from '@/components/CharacterCard';
 import CharacterFormModal from '@/components/CharacterFormModal';
+import CharacterAlbumStack from '@/components/CharacterAlbumStack';
 import { Users, Plus, Pencil } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CharactersPage() {
   const { data: session } = useSession();
   const { t } = useLocale();
-  const { characters, setCharacters, addCharacter, updateCharacter } = useStore();
+  const { characters, setCharacters, addCharacter, updateCharacter, universes, setUniverses } = useStore();
   const [loading, setLoading] = useState(true);
   const [showAddChar, setShowAddChar] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/characters')
-      .then(r => r.json())
-      .then(data => {
-        setCharacters(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    Promise.all([
+      fetch('/api/characters').then(r => r.json()),
+      fetch('/api/universes').then(r => r.json())
+    ]).then(([charData, uniData]) => {
+      setCharacters(Array.isArray(charData) ? charData : []);
+      setUniverses(Array.isArray(uniData) ? uniData : []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   const handleSaveCharacter = async (data: any) => {
@@ -77,17 +79,56 @@ export default function CharactersPage() {
         </div>
       ) : (
         <div className="grid-cards">
-          {characters.map((c: any) => (
-            <div key={c.id} style={{ position: 'relative' }}>
-              <CharacterCard character={c} />
-              <button
-                onClick={() => { setSelectedCharacter(c); setShowAddChar(true); }}
-                style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}
-              >
-                <Pencil size={14} />
-              </button>
-            </div>
-          ))}
+          {(() => {
+            const groupedCharacters: { [key: string]: any[] } = {};
+            const singleCharacters: any[] = [];
+            
+            characters.forEach((c: any) => {
+              const primaryUniverse = c.universeIds?.[0];
+              if (primaryUniverse) {
+                if (!groupedCharacters[primaryUniverse]) groupedCharacters[primaryUniverse] = [];
+                groupedCharacters[primaryUniverse].push(c);
+              } else {
+                singleCharacters.push(c);
+              }
+            });
+
+            const albums: { universe: any, chars: any[] }[] = [];
+            
+            Object.keys(groupedCharacters).forEach(uid => {
+              const chars = groupedCharacters[uid];
+              const universe = universes.find((u: any) => u.id === uid);
+              if (chars.length > 1 && universe) {
+                albums.push({ universe, chars });
+              } else {
+                chars.forEach((c: any) => singleCharacters.push(c));
+              }
+            });
+
+            return (
+              <>
+                {albums.map((album) => (
+                  <CharacterAlbumStack 
+                    key={`album-${album.universe.id}`} 
+                    universe={album.universe} 
+                    characters={album.chars} 
+                    href={`/universes/${album.universe.id}`} 
+                  />
+                ))}
+                {singleCharacters.map((c: any) => (
+                  <div key={c.id} style={{ position: 'relative' }}>
+                    <CharacterCard character={c} />
+                    <button
+                      onClick={() => { setSelectedCharacter(c); setShowAddChar(true); }}
+                      style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  </div>
+                ))}
+              </>
+            );
+          })()}
         </div>
       )}
 

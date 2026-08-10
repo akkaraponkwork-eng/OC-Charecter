@@ -5,6 +5,7 @@ import { Users, Search, RefreshCw, FolderOpen, User as UserIcon } from 'lucide-r
 import { useLocale } from '@/store/useLocale';
 import UniverseCard from '@/components/UniverseCard';
 import CharacterCard from '@/components/CharacterCard';
+import CharacterAlbumStack from '@/components/CharacterAlbumStack';
 
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters'>('users');
@@ -167,9 +168,48 @@ export default function CommunityPage() {
               </div>
             ) : (
               <div className="grid-cards">
-                {filteredCharacters.map((char) => (
-                  <CharacterCard key={char.id} character={char} hideDelete />
-                ))}
+                {(() => {
+                  const groupedCharacters: { [key: string]: any[] } = {};
+                  const singleCharacters: any[] = [];
+                  
+                  filteredCharacters.forEach((c: any) => {
+                    const primaryUniverse = c.universeIds?.[0];
+                    if (primaryUniverse) {
+                      if (!groupedCharacters[primaryUniverse]) groupedCharacters[primaryUniverse] = [];
+                      groupedCharacters[primaryUniverse].push(c);
+                    } else {
+                      singleCharacters.push(c);
+                    }
+                  });
+
+                  const albums: { universe: any, chars: any[] }[] = [];
+                  
+                  Object.keys(groupedCharacters).forEach(uid => {
+                    const chars = groupedCharacters[uid];
+                    const universe = universes.find((u: any) => u.id === uid);
+                    if (chars.length > 1 && universe) {
+                      albums.push({ universe, chars });
+                    } else {
+                      chars.forEach((c: any) => singleCharacters.push(c));
+                    }
+                  });
+
+                  return (
+                    <>
+                      {albums.map((album) => (
+                        <CharacterAlbumStack 
+                          key={`album-${album.universe.id}`} 
+                          universe={album.universe} 
+                          characters={album.chars} 
+                          href={`/share/universe/${album.universe.id}`} 
+                        />
+                      ))}
+                      {singleCharacters.map((char) => (
+                        <CharacterCard key={char.id} character={char} hideDelete />
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
             )
           )}
