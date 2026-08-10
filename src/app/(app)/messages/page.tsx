@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import ChatBox from '@/components/ChatBox';
 import CreateGroupModal from '@/components/CreateGroupModal';
 import ManageGroupModal from '@/components/ManageGroupModal';
-import { MessageCircle, Globe, User, Users, Plus, Trash2, LogOut, Settings } from 'lucide-react';
+import { MessageCircle, Globe, User, Users, Plus, Trash2, LogOut, Pencil } from 'lucide-react';
 import { useToast } from '@/store/useToast';
 
 type TabType = 'dms' | 'groups' | 'public';
@@ -170,23 +170,24 @@ function MessagesContent() {
         {/* Group Actions */}
         {chat.type === 'group' && (
           <div style={{ display: 'flex', gap: '0.25rem', paddingRight: '0.75rem', flexShrink: 0 }}>
+            {(isOwner || isAdmin) && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setManagingGroup(chat); }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
+                title="แก้ไขและจัดการสมาชิก"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+            
             {(isOwner || isAdmin) ? (
-              <>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setManagingGroup(chat); }}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
-                  title="จัดการสมาชิกกลุ่ม"
-                >
-                  <Settings size={14} />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteGroup(chat.id, chat.title); }}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
-                  title="ลบกลุ่ม"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </>
+              <button
+                onClick={(e) => { e.stopPropagation(); deleteGroup(chat.id, chat.title); }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
+                title="ลบกลุ่ม"
+              >
+                <Trash2 size={14} />
+              </button>
             ) : (
               <button
                 onClick={(e) => { e.stopPropagation(); leaveGroup(chat.id, chat.title); }}
