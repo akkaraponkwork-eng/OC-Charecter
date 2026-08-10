@@ -322,10 +322,12 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
           <button className="btn-secondary" onClick={() => setShowInvite(!showInvite)} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Users size={14} /> {t('universe.invite')} {collaborators.length > 0 && `(${collaborators.length})`}
           </button>
+        </>)}
+        {(isOwner || universe?.isCollaborator || isAdmin) && (
           <button className="btn-secondary" onClick={() => setShowEditUni(true)} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Settings size={14} /> Edit Universe
           </button>
-        </>)}
+        )}
         {universe?.isCollaborator && (
           <button className="btn-danger" onClick={() => handleRemoveCollaborator(uid)} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <LogOut size={14} /> Leave Universe
@@ -602,16 +604,16 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <h2 style={{ fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={20} /> Edit Universe</h2>
             <form onSubmit={handleEditUniverse} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', pointerEvents: (!isOwner && !isAdmin) ? 'none' : 'auto', opacity: (!isOwner && !isAdmin) ? 0.7 : 1 }}>
                 <ImageUpload onUploaded={(url) => setEditUniCover(url)} currentUrl={editUniCover} size={150} />
               </div>
               <div>
                 <label className="label">Universe Name *</label>
-                <input className="input" value={editUniName} onChange={(e) => setEditUniName(e.target.value)} required />
+                <input className="input" value={editUniName} onChange={(e) => setEditUniName(e.target.value)} required disabled={!isOwner && !isAdmin} style={{ opacity: (!isOwner && !isAdmin) ? 0.7 : 1 }} />
               </div>
               <div>
                 <label className="label">Description</label>
-                <textarea className="input" rows={3} value={editUniDesc} onChange={(e) => setEditUniDesc(e.target.value)} />
+                <textarea className="input" rows={3} value={editUniDesc} onChange={(e) => setEditUniDesc(e.target.value)} disabled={!isOwner && !isAdmin} style={{ opacity: (!isOwner && !isAdmin) ? 0.7 : 1 }} />
               </div>
 
               {/* Story Logs */}
@@ -623,28 +625,36 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: 300, overflowY: 'auto', paddingRight: '0.5rem' }}>
-                  {editUniStories.map((story) => (
-                    <div key={story.id} style={{ background: '#13141c', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem' }}>
+                  {editUniStories.map((story) => {
+                    const isStoryOwner = story.addedBy === uid;
+                    const canEditStory = isOwner || isAdmin || isStoryOwner || !story.addedBy;
+                    return (
+                    <div key={story.id} style={{ background: '#13141c', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem', opacity: !canEditStory ? 0.7 : 1 }}>
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                        <input className="input" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }} value={story.title} onChange={(e) => updateUniStory(story.id, 'title', e.target.value)} placeholder="หัวข้อสตอรี่ / โลเคชั่น" />
+                        <input className="input" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }} value={story.title} onChange={(e) => updateUniStory(story.id, 'title', e.target.value)} placeholder="หัวข้อสตอรี่ / โลเคชั่น" disabled={!canEditStory} />
                         <button type="button"
                           onClick={() => updateUniStory(story.id, 'isLocked', !story.isLocked)}
-                          style={{ padding: '0.5rem 0.75rem', background: story.isLocked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)', border: story.isLocked ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)', color: story.isLocked ? '#ef4444' : 'var(--text-muted)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}
+                          disabled={!canEditStory}
+                          style={{ padding: '0.5rem 0.75rem', background: story.isLocked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)', border: story.isLocked ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)', color: story.isLocked ? '#ef4444' : 'var(--text-muted)', borderRadius: 8, cursor: canEditStory ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}
                         >
                           {story.isLocked ? 'ล็อก (เฉพาะคุณที่เห็น)' : 'เปิดสาธารณะ'}
                         </button>
-                        <button type="button" onClick={() => removeUniStory(story.id)} className="btn-danger" style={{ padding: '0.5rem' }}><Trash2 size={16} /></button>
+                        {canEditStory && (
+                          <button type="button" onClick={() => removeUniStory(story.id)} className="btn-danger" style={{ padding: '0.5rem' }}><Trash2 size={16} /></button>
+                        )}
                       </div>
-                      <textarea className="input" style={{ padding: '0.5rem', fontSize: '0.85rem', resize: 'vertical' }} rows={2} value={story.description} onChange={(e) => updateUniStory(story.id, 'description', e.target.value)} placeholder="รายละเอียดเนื้อเรื่อง หรือสถานที่สำคัญ..." />
+                      <textarea className="input" style={{ padding: '0.5rem', fontSize: '0.85rem', resize: 'vertical' }} rows={2} value={story.description} onChange={(e) => updateUniStory(story.id, 'description', e.target.value)} placeholder="รายละเอียดเนื้อเรื่อง หรือสถานที่สำคัญ..." disabled={!canEditStory} />
                     </div>
-                  ))}
+                  )})}
                   {editUniStories.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>ยังไม่มีสตอรี่จักรวาล เพิ่มเรื่องราวของคุณเลย</p>}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '1rem' }}>
-                <button type="button" className="btn-danger" onClick={handleDeleteUniverse} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Trash2 size={16} /> Delete
-                </button>
+                {(isOwner || isAdmin) ? (
+                  <button type="button" className="btn-danger" onClick={handleDeleteUniverse} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Trash2 size={16} /> Delete
+                  </button>
+                ) : <div />}
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <button type="button" className="btn-secondary" onClick={() => setShowEditUni(false)}>{t('common.cancel')}</button>
                   <button type="submit" className="btn-primary">Save</button>

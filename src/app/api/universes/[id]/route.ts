@@ -61,7 +61,6 @@ export async function GET(req: NextRequest, { params }: Params) {
 }
 
 
-// PUT /api/universes/[id]
 export async function PUT(req: NextRequest, { params }: Params) {
   const { id } = await params;
   const session = await auth();
@@ -76,12 +75,25 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const rows = await sheet.getCachedRows();
     const row = rows.find((r) => r.get('id') === id);
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (!isAdmin && row.get('userId') !== uid)
+
+    const ownerId = row.get('userId');
+    const isOwner = ownerId === uid;
+    
+    // Check if collaborator
+    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+    const collabRows = await collabSheet.getCachedRows();
+    const isCollaborator = collabRows.some(
+      (r) => r.get('universeId') === id && r.get('userId') === uid && r.get('status') === 'accepted'
+    );
+
+    if (!isAdmin && !isOwner && !isCollaborator)
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (body.name !== undefined) row.set('name', body.name);
-    if (body.coverUrl !== undefined) row.set('coverUrl', body.coverUrl);
-    if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
+    if (isAdmin || isOwner) {
+      if (body.name !== undefined) row.set('name', body.name);
+      if (body.coverUrl !== undefined) row.set('coverUrl', body.coverUrl);
+      if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
+    }
 
     let currentRawDesc = row.get('description') || '';
     let currentDesc = currentRawDesc;
@@ -93,11 +105,37 @@ export async function PUT(req: NextRequest, { params }: Params) {
       currentStoriesStr = parts[1];
     }
 
-    if (body.description !== undefined) {
+    if ((isAdmin || isOwner) && body.description !== undefined) {
       currentDesc = body.description;
     }
+
     if (body.stories !== undefined) {
-      currentStoriesStr = typeof body.stories === 'string' ? body.stories : (body.stories.length > 0 ? JSON.stringify(body.stories) : '');
+      if (isAdmin || isOwner) {
+        currentStoriesStr = typeof body.stories === 'string' ? body.stories : (body.stories.length > 0 ? JSON.stringify(body.stories) : '');
+      } else if (isCollaborator) {
+        let parsedStories: any[] = [];
+        try { if (currentStoriesStr) parsedStories = JSON.parse(currentStoriesStr); } catch (e) {}
+        
+        let newStoriesFromCollab: any[] = typeof body.stories === 'string' ? JSON.parse(body.stories) : body.stories;
+        
+        const finalStories = parsedStories.map(existingStory => {
+          const updated = newStoriesFromCollab.find((s: any) => s.id === existingStory.id);
+          if (updated) {
+            if (existingStory.addedBy === uid) {
+              return { ...updated, addedBy: uid };
+            }
+            return existingStory; 
+          }
+          if (existingStory.addedBy === uid) return null; 
+          return existingStory; 
+        }).filter(Boolean);
+
+        const newStories = newStoriesFromCollab.filter((s: any) => !parsedStories.some(old => old.id === s.id));
+        for (const s of newStories) {
+          finalStories.push({ ...s, addedBy: uid, isLocked: s.isLocked === true });
+        }
+        currentStoriesStr = finalStories.length > 0 ? JSON.stringify(finalStories) : '';
+      }
     }
 
     let finalDesc = currentDesc;

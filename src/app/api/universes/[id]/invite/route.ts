@@ -121,6 +121,49 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (row) {
       await row.delete();
       clearSheetCache(SHEET_NAMES.COLLABORATIONS);
+
+      // Cascade: remove user's characters from this universe
+      const charSheet = await getSheet(SHEET_NAMES.CHARACTERS);
+      const charRows = await charSheet.getRows();
+      for (const r of charRows) {
+        if (r.get('userId') === userId) {
+          const uIdsStr = r.get('universeId') || '';
+          const currentIds = uIdsStr.split(',').map((uId: string) => uId.trim()).filter(Boolean);
+          if (currentIds.includes(id)) {
+            const newIds = currentIds.filter((uId: string) => uId !== id);
+            r.set('universeId', newIds.join(','));
+            await r.save();
+          }
+        }
+      }
+      clearSheetCache(SHEET_NAMES.CHARACTERS);
+
+      // Cascade: remove user's stories from this universe
+      const rawDesc = universe.get('description') || '';
+      let currentDesc = rawDesc;
+      let currentStoriesStr = '';
+
+      if (rawDesc.includes('---STORIES---')) {
+        const parts = rawDesc.split('---STORIES---');
+        currentDesc = parts[0];
+        currentStoriesStr = parts[1];
+      }
+
+      if (currentStoriesStr) {
+        try {
+          const parsedStories = JSON.parse(currentStoriesStr);
+          const filteredStories = parsedStories.filter((s: any) => s.addedBy !== userId);
+          const finalStoriesStr = filteredStories.length > 0 ? JSON.stringify(filteredStories) : '';
+          
+          let finalDesc = currentDesc;
+          if (finalStoriesStr) {
+            finalDesc += '---STORIES---' + finalStoriesStr;
+          }
+          universe.set('description', finalDesc);
+          await universe.save();
+          clearSheetCache(SHEET_NAMES.UNIVERSES);
+        } catch (e) {}
+      }
     }
 
     return NextResponse.json({ success: true });
