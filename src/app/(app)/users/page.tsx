@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Search, RefreshCw, FolderOpen, User as UserIcon, Send, Trash2 } from 'lucide-react';
+import { Users, Search, RefreshCw, FolderOpen, User as UserIcon, Send, Trash2, MessageCircle, Edit3 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
 import UniverseCard from '@/components/UniverseCard';
