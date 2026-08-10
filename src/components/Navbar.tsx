@@ -93,7 +93,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: <FolderOpen size={16} /> },
     { href: '/characters', label: t('nav.characters') || 'Characters', icon: <User size={16} /> },
-    { href: '/stories', label: t('nav.stories') || 'Stories', icon: <BookOpen size={16} /> },
+    { href: '/stories', label: t('nav.stories') || 'สตอรี่เซตติ้ง', icon: <BookOpen size={16} /> },
     { href: '/users', label: t('nav.community') || 'Community', icon: <Users size={16} /> },
     { 
       href: '/messages', label: t('nav.messages'), icon: <MessageCircle size={16} />,
