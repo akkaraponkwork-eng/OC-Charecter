@@ -41,13 +41,18 @@ export default function CharacterAlbumStack({ universe, characters, href }: Char
               }}
             >
               {isTop ? (
-                <div className="glass card-hover" style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className="glass card-hover" style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  {universe?.isCollaborator && (
+                    <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, background: 'var(--accent)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700, boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                      Collab
+                    </div>
+                  )}
                   <div style={{
                     height: 200, 
                     background: coverImage ? `url(${coverImage}) center/cover` : 'linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3))',
                     position: 'relative',
                   }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.9), transparent 60%)' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.95), transparent 70%)' }} />
                     <div style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', right: '0.75rem' }}>
                       <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                          <Layers size={16} /> {universe?.name || 'Unknown Album'}
@@ -81,9 +86,7 @@ export default function CharacterAlbumStack({ universe, characters, href }: Char
                   </div>
                 </div>
               ) : (
-                <div className="glass" style={{ height: '100%', overflow: 'hidden', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ height: '100%', background: c.imageUrl ? `url(${c.imageUrl}) center/cover` : 'var(--primary)' }} />
-                </div>
+                <div style={{ height: '100%', borderRadius: 'var(--radius-md)', background: 'rgba(20, 20, 30, 0.9)', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }} />
               )}
             </div>
           );
