@@ -21,12 +21,20 @@ export async function GET(req: NextRequest) {
         const realRole = r.get('role');
         const displayRole = (isAdmin || r.get('uid') === myUid) ? realRole : (realRole === 'admin' ? 'user' : realRole);
         
+        let socialLinks = null;
+        try {
+          if (r.get('socialLinks')) {
+            socialLinks = JSON.parse(r.get('socialLinks'));
+          }
+        } catch(e) {}
+        
         return {
           uid: r.get('uid'),
           displayName: r.get('displayName') || r.get('username'),
           username: r.get('username'),
           avatarUrl: r.get('avatarUrl'),
           bio: r.get('bio'),
+          socialLinks,
           role: displayRole,
         };
       });

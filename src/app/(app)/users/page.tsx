@@ -8,7 +8,7 @@ import CharacterCard from '@/components/CharacterCard';
 import CharacterAlbumStack from '@/components/CharacterAlbumStack';
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters' | 'socials'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [universes, setUniverses] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
@@ -100,6 +100,12 @@ export default function CommunityPage() {
           style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'characters' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'characters' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           <UserIcon size={18} /> Characters ({characters.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('socials')} 
+          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'socials' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'socials' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
+        >
+          <Users size={18} /> หาเพื่อน & แลกโซเชียล
         </button>
       </div>
 
@@ -212,6 +218,88 @@ export default function CommunityPage() {
                 })()}
               </div>
             )
+          )}
+
+          {activeTab === 'socials' && (
+            <div style={{ padding: '0 0.5rem' }}>
+              <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', textAlign: 'center', background: 'linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1))', border: '1px solid rgba(124, 58, 237, 0.2)' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>🤝 หาเพื่อน แลกไอดี และร่วมคอลแลป!</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', maxWidth: '600px', margin: '0 auto 1rem' }}>
+                  บอร์ดนี้รวมโปรไฟล์ของคนในคอมมูนิตี้ที่เปิดรับการพูดคุยและแลกเปลี่ยนคอนแทค อยากให้คนอื่นเห็นคุณที่นี่ไหม?
+                </p>
+                <Link href="/profile/me" className="btn-primary" style={{ display: 'inline-block', padding: '0.6rem 1.25rem', borderRadius: '99px', textDecoration: 'none' }}>
+                  ไปกรอกข้อมูลในโปรไฟล์ของคุณเลย
+                </Link>
+              </div>
+
+              {filteredUsers.filter(u => u.bio || (u.socialLinks && Object.values(u.socialLinks).some(v => v))).length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                  <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                  <p>ยังไม่มีใครเขียนแนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!</p>
+                </div>
+              ) : (
+                <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+                  {filteredUsers
+                    .filter(u => u.bio || (u.socialLinks && Object.values(u.socialLinks).some(v => v)))
+                    .map((u) => (
+                      <div key={u.uid} className="glass card-hover" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <Link href={`/profile/${u.uid}`} style={{ textDecoration: 'none' }}>
+                            <div style={{
+                              width: 60, height: 60, borderRadius: '50%', flexShrink: 0,
+                              background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '1.5rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
+                            }}>
+                              {!u.avatarUrl && (u.displayName?.[0] || u.username?.[0] || '?').toUpperCase()}
+                            </div>
+                          </Link>
+                          <div>
+                            <Link href={`/profile/${u.uid}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.1rem' }} className={u.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>
+                                {u.displayName || u.username}
+                              </h3>
+                              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>@{u.username}</p>
+                            </Link>
+                          </div>
+                        </div>
+                        
+                        {u.bio && (
+                          <div style={{ background: 'var(--bg-elevated)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontSize: '0.85rem', color: 'var(--text-main)', borderLeft: '3px solid var(--primary)', fontStyle: 'italic' }}>
+                            "{u.bio}"
+                          </div>
+                        )}
+                        
+                        {(u.socialLinks?.twitter || u.socialLinks?.instagram || u.socialLinks?.discord) && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: 'auto', paddingTop: '0.5rem' }}>
+                            {u.socialLinks?.twitter && (
+                              <a href={`https://twitter.com/${u.socialLinks.twitter}`} target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(29, 161, 242, 0.1)', color: '#1DA1F2', padding: '0.3rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', textDecoration: 'none', fontWeight: 600 }}>
+                                X: {u.socialLinks.twitter}
+                              </a>
+                            )}
+                            {u.socialLinks?.instagram && (
+                              <a href={`https://instagram.com/${u.socialLinks.instagram}`} target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(225, 48, 108, 0.1)', color: '#E1306C', padding: '0.3rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', textDecoration: 'none', fontWeight: 600 }}>
+                                IG: {u.socialLinks.instagram}
+                              </a>
+                            )}
+                            {u.socialLinks?.discord && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(88, 101, 242, 0.1)', color: '#5865F2', padding: '0.3rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 600 }}>
+                                Discord: {u.socialLinks.discord}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <Link href={`/messages?userId=${u.uid}`} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.6rem', borderRadius: '8px', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
+                            ส่งข้อความทักทาย
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
