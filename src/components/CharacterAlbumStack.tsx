@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useLocale } from '@/store/useLocale';
-import { Layers } from 'lucide-react';
+import { Layers, Handshake } from 'lucide-react';
 
 interface CharacterAlbumStackProps {
   universe: any;
@@ -43,8 +43,8 @@ export default function CharacterAlbumStack({ universe, characters, href }: Char
               {isTop ? (
                 <div className="glass card-hover" style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                   {universe?.isCollaborator && (
-                    <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, background: 'var(--accent)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700, boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                      Collab
+                    <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, background: 'rgba(0,0,0,0.5)', color: '#fbbf24', border: '1px solid #fbbf24', padding: '0.2rem 0.6rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700, boxShadow: '0 2px 10px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', gap: '0.3rem', backdropFilter: 'blur(4px)' }}>
+                      <Handshake size={14} /> Collab
                     </div>
                   )}
                   <div style={{
