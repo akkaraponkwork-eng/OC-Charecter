@@ -114,7 +114,7 @@ function MessagesContent() {
 
   const renderChatItem = (chat: any) => {
     const isActive = activeChatId === chat.id;
-    const isOwner = chat.ownerId === uid;
+    const isOwner = chat.isOwner || chat.ownerId === uid;
     return (
       <div
         key={chat.id}
