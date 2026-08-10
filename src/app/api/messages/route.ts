@@ -6,15 +6,19 @@ import { generateDmChatId } from '@/lib/auth-helpers';
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const uid = (session.user as any).uid;
+  const uid = session?.user ? (session.user as any).uid : null;
   const chatId = req.nextUrl.searchParams.get('chatId');
   if (!chatId) return NextResponse.json({ error: 'chatId required' }, { status: 400 });
 
-  // Security: user must be part of this chat
+  // Security: user must be part of this chat, except for public and social_board
   const isDm = chatId.startsWith('dm_');
   const isUniverse = chatId.startsWith('universe_');
   const isPublic = chatId === 'public';
+  const isSocialBoard = chatId === 'social_board';
+
+  if (!uid && !isSocialBoard) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   // Public chat — all authenticated users can access
   if (isPublic) {

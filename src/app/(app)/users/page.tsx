@@ -300,38 +300,47 @@ export default function CommunityPage() {
                   🤝 {t('community.socialsTitle') || 'หาเพื่อน แลกไอดี และร่วมคอลแลป!'}
                 </h2>
                 
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-                    background: currentUser?.avatarUrl || currentUser?.image ? `url(${currentUser.avatarUrl || currentUser.image}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.2rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
-                  }}>
-                    {!(currentUser?.avatarUrl || currentUser?.image) && (currentUser?.name?.[0] || currentUser?.username?.[0] || '?').toUpperCase()}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <textarea 
-                      placeholder="เขียนแนะนำตัว ฝากช่องทางติดต่อ หรือแปะลิ้งก์ที่นี่..."
-                      value={newPostContent}
-                      onChange={e => setNewPostContent(e.target.value)}
-                      style={{
-                        width: '100%', minHeight: '80px', padding: '0.75rem 1rem', borderRadius: 'var(--radius)',
-                        border: '1px solid var(--glass-border)', background: 'var(--bg-main)', color: 'var(--text-main)',
-                        resize: 'vertical', fontSize: '0.9rem', outline: 'none', marginBottom: '0.5rem'
-                      }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button 
-                        onClick={handlePostSubmit} 
-                        disabled={posting || !newPostContent.trim()}
-                        className="btn-primary" 
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '99px', opacity: (!newPostContent.trim() || posting) ? 0.5 : 1 }}
-                      >
-                        <Send size={14} /> โพสต์
-                      </button>
+                {currentUser ? (
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
+                      background: currentUser?.avatarUrl || currentUser?.image ? `url(${currentUser.avatarUrl || currentUser.image}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '1.2rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
+                    }}>
+                      {!(currentUser?.avatarUrl || currentUser?.image) && (currentUser?.name?.[0] || currentUser?.username?.[0] || '?').toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <textarea 
+                        placeholder="เขียนแนะนำตัว ฝากช่องทางติดต่อ หรือแปะลิ้งก์ที่นี่..."
+                        value={newPostContent}
+                        onChange={e => setNewPostContent(e.target.value)}
+                        style={{
+                          width: '100%', minHeight: '80px', padding: '0.75rem 1rem', borderRadius: 'var(--radius)',
+                          border: '1px solid var(--glass-border)', background: 'var(--bg-main)', color: 'var(--text-main)',
+                          resize: 'vertical', fontSize: '0.9rem', outline: 'none', marginBottom: '0.5rem'
+                        }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={handlePostSubmit} 
+                          disabled={posting || !newPostContent.trim()}
+                          className="btn-primary" 
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '99px', opacity: (!newPostContent.trim() || posting) ? 0.5 : 1 }}
+                        >
+                          <Send size={14} /> โพสต์
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '1rem' }}>
+                    <p style={{ color: 'var(--text-muted)' }}>กรุณาเข้าสู่ระบบเพื่อโพสต์แนะนำตัวและแปะลิ้งก์ของคุณ</p>
+                    <Link href="/login" className="btn-primary" style={{ display: 'inline-block', marginTop: '1rem', padding: '0.5rem 1.25rem', borderRadius: '99px', textDecoration: 'none' }}>
+                      เข้าสู่ระบบ
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {socialPosts.length === 0 ? (
