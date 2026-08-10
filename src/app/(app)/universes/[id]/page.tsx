@@ -54,6 +54,13 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
 
   const [inviteCopied, setInviteCopied] = useState(false);
 
+  // Add Story state (for collabs)
+  const [showAddStory, setShowAddStory] = useState(false);
+  const [newStoryTitle, setNewStoryTitle] = useState('');
+  const [newStoryDesc, setNewStoryDesc] = useState('');
+  const [newStoryLocked, setNewStoryLocked] = useState(false);
+  const [addStoryLoading, setAddStoryLoading] = useState(false);
+
   useEffect(() => {
     // Load universe info
     fetch(`/api/universes/${id}`)
@@ -226,6 +233,40 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
     window.location.href = '/dashboard';
   };
 
+  const handleAddStory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStoryTitle.trim()) return;
+    setAddStoryLoading(true);
+    const res = await fetch(`/api/universes/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'add', story: { title: newStoryTitle, description: newStoryDesc, isLocked: newStoryLocked } }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setUniverse((prev: any) => ({ ...prev, stories: data.stories }));
+      setNewStoryTitle(''); setNewStoryDesc(''); setNewStoryLocked(false); setShowAddStory(false);
+      showToast('เพิ่มสตอรี่สำเร็จ!', 'success');
+    } else {
+      showToast(data.error || 'Failed to add story', 'error');
+    }
+    setAddStoryLoading(false);
+  };
+
+  const handleDeleteStory = async (storyId: string) => {
+    if (!confirm('ลบสตอรี่นี้?')) return;
+    const res = await fetch(`/api/universes/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', storyId }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setUniverse((prev: any) => ({ ...prev, stories: data.stories }));
+      showToast('ลบสตอรี่แล้ว', 'success');
+    } else {
+      showToast(data.error || 'ไม่สามารถลบสตอรี่ได้', 'error');
+    }
+  };
+
   const handleRemoveCollaborator = async (targetUserId: string) => {
     if (!confirm(t('common.confirmDelete') || 'Are you sure?')) return;
     const res = await fetch(`/api/universes/${id}/invite`, {
@@ -267,6 +308,11 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
         {(isOwner || universe?.isCollaborator || isAdmin) && (
           <button className="btn-primary" onClick={loadMyCharacters} style={{ fontSize: '0.875rem' }}>
             {t('universe.addCharacter')}
+          </button>
+        )}
+        {(isOwner || universe?.isCollaborator || isAdmin) && (
+          <button className="btn-secondary" onClick={() => setShowAddStory(!showAddStory)} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Book size={14} /> เพิ่มสตอรี่
           </button>
         )}
         {isOwner && (<>
@@ -396,21 +442,57 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
       )}
 
       {/* Universe Stories Section */}
-      {universe.stories && universe.stories.length > 0 && (
+      {((universe.stories && universe.stories.length > 0) || showAddStory) && (
         <div style={{ marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Book size={20} /> {t('universe.stories')}
           </h2>
+
+          {/* Add Story Form (collaborator / owner / admin) */}
+          {showAddStory && (
+            <form onSubmit={handleAddStory} style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Book size={16} /> เพิ่มสตอรี่ใหม่
+              </div>
+              <input className="input" placeholder="หัวข้อสตอรี่ *" value={newStoryTitle} onChange={e => setNewStoryTitle(e.target.value)} required />
+              <textarea className="input" placeholder="รายละเอียดเนื้อเรื่อง..." rows={3} value={newStoryDesc} onChange={e => setNewStoryDesc(e.target.value)} style={{ resize: 'vertical' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={newStoryLocked} onChange={e => setNewStoryLocked(e.target.checked)} />
+                <Lock size={13} /> ล็อก (เฉพาะผู้ร่วมงานที่เห็น)
+              </label>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowAddStory(false); setNewStoryTitle(''); setNewStoryDesc(''); }}>ยกเลิก</button>
+                <button type="submit" className="btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} disabled={addStoryLoading || !newStoryTitle.trim()}>
+                  {addStoryLoading ? <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> : null}
+                  {addStoryLoading ? 'กำลังบันทึก...' : 'บันทึกสตอรี่'}
+                </button>
+              </div>
+            </form>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {universe.stories.map((story: any) => (
-              <StoryCard
-                key={story.id}
-                story={story}
-                targetId={id}
-                type="universe"
-                isOwner={isOwner || universe.isCollaborator}
-              />
-            ))}
+            {(universe.stories || []).map((story: any) => {
+              const canDeleteStory = isOwner || isAdmin || story.addedBy === uid;
+              return (
+                <div key={story.id} style={{ position: 'relative' }}>
+                  <StoryCard
+                    story={story}
+                    targetId={id}
+                    type="universe"
+                    isOwner={isOwner || universe.isCollaborator || isAdmin}
+                  />
+                  {canDeleteStory && (
+                    <button
+                      onClick={() => handleDeleteStory(story.id)}
+                      style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(239,68,68,0.85)', border: 'none', color: 'white', padding: '0.35rem', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', zIndex: 5 }}
+                      title="ลบสตอรี่"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -429,31 +511,41 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
         </div>
       ) : (
         <div className="grid-cards">
-          {universeChars.map((c: any) => (
-            <div key={c.id} style={{ position: 'relative' }}>
-              <CharacterCard character={c} hideDelete />
-              {isOwner && (
-                <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: '0.4rem', zIndex: 10 }}>
-                  <button
-                    onClick={() => { setSelectedCharacter(c); setShowAddChar(true); }}
-                    style={{ background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}
-                    title="Edit Character"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleRemoveCharacterFromUniverse(c.id)}
-                    style={{ background: 'rgba(239,68,68,0.8)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}
-                    title="Remove from Universe"
-                  >
-                    <LogOut size={14} />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+          {universeChars.map((c: any) => {
+            const isCharOwner = c.userId === uid;
+            const canEdit = isAdmin || isCharOwner;
+            const canRemove = isOwner || isAdmin || isCharOwner;
+            return (
+              <div key={c.id} style={{ position: 'relative' }}>
+                <CharacterCard character={c} hideDelete />
+                {(canEdit || canRemove) && (
+                  <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: '0.4rem', zIndex: 10 }}>
+                    {canEdit && (
+                      <button
+                        onClick={() => { setSelectedCharacter(c); setShowAddChar(true); }}
+                        style={{ background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}
+                        title="Edit Character"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
+                    {canRemove && (
+                      <button
+                        onClick={() => handleRemoveCharacterFromUniverse(c.id)}
+                        style={{ background: 'rgba(239,68,68,0.8)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}
+                        title={isOwner || isAdmin ? 'Remove from Universe' : 'Remove My Character'}
+                      >
+                        <LogOut size={14} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
+
 
       {/* Select Character Modal */}
       {showSelectChar && (

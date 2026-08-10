@@ -63,30 +63,48 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const rows = await sheet.getCachedRows();
     const row = rows.find((r) => r.get('id') === id);
     if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (!isAdmin && row.get('userId') !== uid)
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
-    if (body.name !== undefined) row.set('name', body.name);
-    if (body.bio !== undefined) row.set('bio', body.bio);
-    if (body.imageUrl !== undefined) row.set('imageUrl', body.imageUrl);
-    if (body.tags !== undefined) row.set('tags', Array.isArray(body.tags) ? body.tags.join(',') : body.tags);
-    if (body.statsJSON !== undefined) row.set('statsJSON', JSON.stringify(body.statsJSON));
-    if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
     
-    // Multiple universes support
-    if (body.addUniverseId) {
-      const currentIds = row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [];
-      if (!currentIds.includes(body.addUniverseId)) {
-        currentIds.push(body.addUniverseId);
-        row.set('universeId', currentIds.join(','));
+    const isCharOwner = row.get('userId') === uid;
+
+    let isUniverseOwnerForRemoval = false;
+    if (body.removeUniverseId) {
+      const uniSheet = await getSheet(SHEET_NAMES.UNIVERSES);
+      const uniRows = await uniSheet.getCachedRows();
+      const uniRow = uniRows.find(r => r.get('id') === body.removeUniverseId);
+      if (uniRow && uniRow.get('userId') === uid) {
+        isUniverseOwnerForRemoval = true;
       }
-    } else if (body.removeUniverseId) {
+    }
+
+    if (!isAdmin && !isCharOwner && !isUniverseOwnerForRemoval) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Only Admin and Character Owner can edit character details
+    if (isAdmin || isCharOwner) {
+      if (body.name !== undefined) row.set('name', body.name);
+      if (body.bio !== undefined) row.set('bio', body.bio);
+      if (body.imageUrl !== undefined) row.set('imageUrl', body.imageUrl);
+      if (body.tags !== undefined) row.set('tags', Array.isArray(body.tags) ? body.tags.join(',') : body.tags);
+      if (body.statsJSON !== undefined) row.set('statsJSON', JSON.stringify(body.statsJSON));
+      if (body.isPublic !== undefined) row.set('isPublic', String(body.isPublic));
+      
+      if (body.addUniverseId) {
+        const currentIds = row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [];
+        if (!currentIds.includes(body.addUniverseId)) {
+          currentIds.push(body.addUniverseId);
+          row.set('universeId', currentIds.join(','));
+        }
+      } else if (body.universeId !== undefined) {
+        row.set('universeId', body.universeId);
+      }
+    }
+
+    // Universe Owner, Admin, and Character Owner can remove from universe
+    if (body.removeUniverseId) {
       const currentIds = row.get('universeId') ? row.get('universeId').split(',').map((id: string) => id.trim()).filter(Boolean) : [];
       const newIds = currentIds.filter((id: string) => id !== body.removeUniverseId);
       row.set('universeId', newIds.join(','));
-    } else if (body.universeId !== undefined) {
-      // Legacy or direct overwrite
-      row.set('universeId', body.universeId);
     }
     
     await row.save();

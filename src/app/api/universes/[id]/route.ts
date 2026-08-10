@@ -115,7 +115,86 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 }
 
-// DELETE /api/universes/[id]
+// PATCH /api/universes/[id] — collaborators can add stories (not edit core info)
+export async function PATCH(req: NextRequest, { params }: Params) {
+  const { id } = await params;
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const uid = (session.user as any).uid;
+  const isAdmin = (session.user as any).role === 'admin';
+  const body = await req.json();
+
+  try {
+    const sheet = await getSheet(SHEET_NAMES.UNIVERSES);
+    const rows = await sheet.getCachedRows();
+    const row = rows.find((r) => r.get('id') === id);
+    if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    const ownerId = row.get('userId');
+    const isOwner = ownerId === uid;
+
+    // Check if collaborator
+    const collabSheet = await getSheet(SHEET_NAMES.COLLABORATIONS);
+    const collabRows = await collabSheet.getCachedRows();
+    const isCollaborator = collabRows.some(
+      (r) => r.get('universeId') === id && r.get('userId') === uid && r.get('status') === 'accepted'
+    );
+
+    if (!isOwner && !isAdmin && !isCollaborator) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Parse existing stories
+    const rawDesc = row.get('description') || '';
+    let cleanDesc = rawDesc;
+    let parsedStories: any[] = [];
+
+    if (rawDesc.includes('---STORIES---')) {
+      const parts = rawDesc.split('---STORIES---');
+      cleanDesc = parts[0];
+      try { parsedStories = JSON.parse(parts[1]); } catch (e) {}
+    }
+
+    // action: 'add' | 'delete'
+    const { action, story, storyId } = body;
+
+    if (action === 'add') {
+      if (!story?.title?.trim()) return NextResponse.json({ error: 'Story title required' }, { status: 400 });
+      const newStory = {
+        id: `story_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        title: story.title.trim(),
+        description: story.description?.trim() || '',
+        isLocked: story.isLocked === true,
+        addedBy: uid,
+      };
+      parsedStories.push(newStory);
+    } else if (action === 'delete') {
+      if (!storyId) return NextResponse.json({ error: 'storyId required' }, { status: 400 });
+      const target = parsedStories.find((s) => s.id === storyId);
+      if (!target) return NextResponse.json({ error: 'Story not found' }, { status: 404 });
+      // Only owner/admin can delete others' stories; collaborators can delete their own
+      if (!isOwner && !isAdmin && target.addedBy !== uid) {
+        return NextResponse.json({ error: 'Forbidden: Only owner or admin can delete this story' }, { status: 403 });
+      }
+      parsedStories = parsedStories.filter((s) => s.id !== storyId);
+    } else {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    }
+
+    const storiesStr = parsedStories.length > 0 ? JSON.stringify(parsedStories) : '';
+    const finalDesc = storiesStr ? cleanDesc + '---STORIES---' + storiesStr : cleanDesc;
+    row.set('description', finalDesc);
+    await row.save();
+    clearSheetCache(SHEET_NAMES.UNIVERSES);
+
+    return NextResponse.json({ success: true, stories: parsedStories });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const { id } = await params;
   const session = await auth();
