@@ -210,7 +210,7 @@ export default function ChatBox({ chatId, title, onClose, asPanel, isPublic, isA
         )}
         {messages.map((msg) => {
           const isSelf = msg.senderId === uid;
-          const canDelete = isPublic ? isAdmin : (isSelf || chatId.startsWith('dm_') || isAdmin);
+          const canDelete = isPublic ? true : (isSelf || chatId.startsWith('dm_') || isAdmin);
           const canEdit = isPublic ? isAdmin : (isSelf || isAdmin);
           const isEditing = editingId === msg.id;
           return (
