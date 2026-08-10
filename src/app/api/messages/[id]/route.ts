@@ -19,7 +19,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const uid = (session.user as any).uid;
 
   try {
-    let sheetName = SHEET_NAMES.MESSAGES;
+    let sheetName: string = SHEET_NAMES.MESSAGES;
     let sheet = await getSheet(sheetName);
     let rows = await sheet.getRows();
     let row = rows.find((r) => r.get('id') === id);
@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { content } = await req.json();
     if (!content?.trim()) return NextResponse.json({ error: 'Content is required' }, { status: 400 });
 
-    let sheetName = SHEET_NAMES.MESSAGES;
+    let sheetName: string = SHEET_NAMES.MESSAGES;
     let sheet = await getSheet(sheetName);
     let rows = await sheet.getRows();
     let row = rows.find((r) => r.get('id') === id);

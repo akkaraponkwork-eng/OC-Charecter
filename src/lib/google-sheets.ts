@@ -31,7 +31,7 @@ export async function getSheet(title: string): Promise<GoogleSpreadsheetWorkshee
   let sheet = doc.sheetsByTitle[title];
   if (!sheet) {
     if (title === 'SocialBoard') {
-      sheet = await doc.addWorksheet({ title, headerValues: ['id', 'chatId', 'senderId', 'senderName', 'senderAvatar', 'content', 'readBy', 'createdAt'] });
+      sheet = await doc.addSheet({ title, headerValues: ['id', 'chatId', 'senderId', 'senderName', 'senderAvatar', 'content', 'readBy', 'createdAt'] });
     } else {
       throw new Error(`Sheet "${title}" not found`);
     }
