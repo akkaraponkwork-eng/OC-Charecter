@@ -14,6 +14,28 @@ export async function GET(req: NextRequest) {
   // Security: user must be part of this chat
   const isDm = chatId.startsWith('dm_');
   const isUniverse = chatId.startsWith('universe_');
+  const isPublic = chatId === 'public';
+
+  // Public chat — all authenticated users can access
+  if (isPublic) {
+    try {
+      const sheet = await getSheet(SHEET_NAMES.MESSAGES);
+      const rows = await sheet.getCachedRows();
+      const messages = rows
+        .filter((r) => r.get('chatId') === 'public')
+        .map((r) => ({
+          id: r.get('id'), chatId: r.get('chatId'),
+          senderId: r.get('senderId'), senderName: r.get('senderName'),
+          senderAvatar: r.get('senderAvatar'), content: r.get('content'),
+          readBy: r.get('readBy') ? JSON.parse(r.get('readBy') || '[]') : [],
+          createdAt: r.get('createdAt'),
+        }))
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      return NextResponse.json(messages);
+    } catch (error: any) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
 
   if (isDm && !chatId.includes(uid))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -49,6 +71,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }
+
 
   try {
     const sheet = await getSheet(SHEET_NAMES.MESSAGES);

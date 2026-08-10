@@ -21,6 +21,15 @@ export async function GET(req: NextRequest) {
 
     const chats: any[] = [];
 
+    // 0. Public Chat — always included for all users
+    chats.push({
+      id: 'public',
+      title: '🌐 Public Chat',
+      type: 'public',
+      coverUrl: null,
+      pinned: true,
+    });
+
     // 1. Group Chats
     groupRows.forEach((r) => {
       const memberIds = JSON.parse(r.get('memberIds') || '[]');
@@ -35,6 +44,7 @@ export async function GET(req: NextRequest) {
         });
       }
     });
+
 
     // 2. Get DMs
     const dmChats = new Set<string>();

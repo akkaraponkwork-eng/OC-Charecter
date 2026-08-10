@@ -314,12 +314,12 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {universe.stories.map((story: any) => (
-              <StoryCard 
-                key={story.id} 
-                story={story} 
-                targetId={id} 
-                type="universe" 
-                isOwner={isOwner || universe.isCollaborator} 
+              <StoryCard
+                key={story.id}
+                story={story}
+                targetId={id}
+                type="universe"
+                isOwner={isOwner || universe.isCollaborator}
               />
             ))}
           </div>
@@ -376,7 +376,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
               </h2>
               <button onClick={() => setShowSelectChar(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            
+
             <div style={{ marginBottom: '1.5rem' }}>
               <button className="btn-secondary" style={{ width: '100%', padding: '1rem', borderStyle: 'dashed' }} onClick={() => { setShowSelectChar(false); setSelectedCharacter(null); setShowAddChar(true); }}>
                 + Create Brand New Character
@@ -446,7 +446,7 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
                     <div key={story.id} style={{ background: '#13141c', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 8, padding: '1rem' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
                         <input className="input" style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }} value={story.title} onChange={(e) => updateUniStory(story.id, 'title', e.target.value)} placeholder="หัวข้อสตอรี่ / โลเคชั่น" />
-                        <button type="button" 
+                        <button type="button"
                           onClick={() => updateUniStory(story.id, 'isLocked', !story.isLocked)}
                           style={{ padding: '0.5rem 0.75rem', background: story.isLocked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)', border: story.isLocked ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)', color: story.isLocked ? '#ef4444' : 'var(--text-muted)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}
                         >

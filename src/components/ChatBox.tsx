@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/store/useLocale';
-import { MessageCircle, Trash2, Settings, Users, UserPlus, X, Camera, Image as ImageIcon } from 'lucide-react';
+import { MessageCircle, Trash2, Pencil, Check, X, Image as ImageIcon, Globe, Users } from 'lucide-react';
 import { useToast } from '@/store/useToast';
 
 interface Message {
@@ -21,9 +21,11 @@ interface Props {
   title: string;
   onClose?: () => void;
   asPanel?: boolean; // slide-in panel vs full page
+  isPublic?: boolean; // Public chat mode
+  isAdmin?: boolean;  // Current user is admin
 }
 
-export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
+export default function ChatBox({ chatId, title, onClose, asPanel, isPublic, isAdmin }: Props) {
   const { data: session } = useSession();
   const { t } = useLocale();
   const uid = (session?.user as any)?.uid;
@@ -31,6 +33,8 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -122,8 +126,35 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
 
   const deleteMessage = async (messageId: string) => {
     if (!confirm(t('common.confirmDelete') || 'Delete this message?')) return;
-    await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
-    setMessages(prev => prev.filter(m => m.id !== messageId));
+    const res = await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+    } else {
+      const data = await res.json();
+      showToast(data.error || 'Failed to delete', 'error');
+    }
+  };
+
+  const startEdit = (msg: Message) => {
+    setEditingId(msg.id);
+    setEditContent(msg.content);
+  };
+
+  const saveEdit = async (messageId: string) => {
+    if (!editContent.trim()) return;
+    const res = await fetch(`/api/messages/${messageId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: editContent.trim() }),
+    });
+    if (res.ok) {
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, content: editContent.trim() } : m));
+      setEditingId(null);
+      setEditContent('');
+    } else {
+      const data = await res.json();
+      showToast(data.error || 'Failed to edit', 'error');
+    }
   };
 
   const clearChat = async () => {
@@ -155,12 +186,15 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <MessageCircle size={16} /> {title}
+          {isPublic ? <Globe size={16} /> : <MessageCircle size={16} />} {title}
+          {isPublic && <span style={{ fontSize: '0.65rem', background: 'var(--primary)', color: 'white', borderRadius: 4, padding: '1px 6px', marginLeft: 4 }}>สาธารณะ</span>}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button onClick={clearChat} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Clear Chat History">
-            <Trash2 size={16} />
-          </button>
+          {!isPublic && (
+            <button onClick={clearChat} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Clear Chat History">
+              <Trash2 size={16} />
+            </button>
+          )}
           {onClose && (
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '0.5rem' }}>×</button>
           )}
@@ -176,12 +210,16 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
         )}
         {messages.map((msg) => {
           const isSelf = msg.senderId === uid;
+          const canDelete = isPublic ? isAdmin : (isSelf || chatId.startsWith('dm_') || isAdmin);
+          const canEdit = isPublic ? isAdmin : (isSelf || isAdmin);
+          const isEditing = editingId === msg.id;
           return (
             <div key={msg.id} style={{ display: 'flex', flexDirection: isSelf ? 'row-reverse' : 'row', gap: '0.5rem', alignItems: 'flex-end' }}>
               {!isSelf && (
                 <div style={{
                   width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                   background: msg.senderAvatar ? `url(${msg.senderAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                  backgroundSize: 'cover', backgroundPosition: 'center',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.7rem', fontWeight: 700, color: 'white',
                 }}>
@@ -190,11 +228,35 @@ export default function ChatBox({ chatId, title, onClose, asPanel }: Props) {
               )}
               <div style={{ maxWidth: '75%' }}>
                 {!isSelf && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{msg.senderName}</div>}
-                <div className={isSelf ? 'bubble-self' : 'bubble-other'} style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-                  {renderMessageContent(msg.content)}
-                </div>
+                {isEditing ? (
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                    <input
+                      className="input"
+                      style={{ padding: '0.4rem 0.6rem', fontSize: '0.875rem', minWidth: 160 }}
+                      value={editContent}
+                      onChange={e => setEditContent(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEdit(msg.id); if (e.key === 'Escape') setEditingId(null); }}
+                      autoFocus
+                    />
+                    <button onClick={() => saveEdit(msg.id)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}><Check size={14} /></button>
+                    <button onClick={() => setEditingId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={14} /></button>
+                  </div>
+                ) : (
+                  <div className={isSelf ? 'bubble-self' : 'bubble-other'} style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                    {renderMessageContent(msg.content)}
+                  </div>
+                )}
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-subtle)', marginTop: '0.2rem', display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', alignItems: 'center', gap: '0.5rem' }}>
-                  {(isSelf || chatId.startsWith('dm_')) && (
+                  {canEdit && !isEditing && !msg.content.startsWith('[IMG]') && (
+                    <button
+                      onClick={() => startEdit(msg)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                      title="Edit message"
+                    >
+                      <Pencil size={11} />
+                    </button>
+                  )}
+                  {canDelete && (
                     <button 
                       onClick={() => deleteMessage(msg.id)}
                       style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
