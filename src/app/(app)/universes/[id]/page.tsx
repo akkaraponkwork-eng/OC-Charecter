@@ -27,9 +27,13 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
   const [showAddChar, setShowAddChar] = useState(false);
   const [showSelectChar, setShowSelectChar] = useState(false);
   const [myAllCharacters, setMyAllCharacters] = useState<any[]>([]);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteQuery, setInviteQuery] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteMsg, setInviteMsg] = useState('');
+  const [inviteMsgOk, setInviteMsgOk] = useState(false);
+  const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+  const [suggLoading, setSuggLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const uid = (session?.user as any)?.uid;
   const isAdmin = (session?.user as any)?.role === 'admin';
@@ -98,16 +102,37 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
     setTimeout(() => setInviteCopied(false), 2000);
   };
 
+  const handleInviteQueryChange = async (val: string) => {
+    setInviteQuery(val);
+    setSelectedUser(null);
+    setInviteMsg('');
+    if (val.trim().length < 1) { setUserSuggestions([]); return; }
+    setSuggLoading(true);
+    try {
+      const res = await fetch('/api/users');
+      const users = await res.json();
+      const q = val.replace('@', '').toLowerCase();
+      const filtered = users.filter((u: any) =>
+        u.username?.toLowerCase().includes(q) || u.displayName?.toLowerCase().includes(q)
+      ).slice(0, 6);
+      setUserSuggestions(filtered);
+    } catch { setUserSuggestions([]); }
+    setSuggLoading(false);
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+    const target = selectedUser?.username || inviteQuery.trim();
+    if (!target) return;
     setInviteLoading(true); setInviteMsg('');
     const res = await fetch(`/api/universes/${id}/invite`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: inviteEmail }),
+      body: JSON.stringify({ username: target.replace('@', '') }),
     });
     const data = await res.json();
-    setInviteMsg(res.ok ? 'Invited!' : `${data.error}`);
-    if (res.ok) setInviteEmail('');
+    setInviteMsgOk(res.ok);
+    setInviteMsg(res.ok ? `✓ เชิญ ${data.inviteeName || target} สำเร็จ!` : `${data.error}`);
+    if (res.ok) { setInviteQuery(''); setSelectedUser(null); setUserSuggestions([]); }
     setInviteLoading(false);
   };
 
@@ -286,13 +311,77 @@ export default function UniverseDetailPage({ params }: { params: Promise<{ id: s
               ))}
             </div>
           )}
-          <form onSubmit={handleInvite} style={{ display: 'flex', gap: '0.75rem' }}>
-            <input className="input" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder={t('invitations.inviteByEmail')} style={{ flex: 1 }} required />
-            <button className="btn-primary" type="submit" disabled={inviteLoading} style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-              {inviteLoading ? '...' : t('invitations.inviteButton')}
-            </button>
+          <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <input
+                    className="input"
+                    value={inviteQuery}
+                    onChange={(e) => handleInviteQueryChange(e.target.value)}
+                    onFocus={() => inviteQuery && handleInviteQueryChange(inviteQuery)}
+                    placeholder="@username หรือชื่อผู้ใช้"
+                    style={{ width: '100%', paddingLeft: selectedUser ? '2.5rem' : undefined }}
+                    autoComplete="off"
+                  />
+                  {selectedUser && (
+                    <div style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 22, height: 22, borderRadius: '50%', background: selectedUser.avatarUrl ? `url(${selectedUser.avatarUrl}) center/cover` : 'var(--primary)', backgroundSize: 'cover', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', color: 'white', fontWeight: 700 }}>
+                      {!selectedUser.avatarUrl && selectedUser.displayName?.[0]}
+                    </div>
+                  )}
+                </div>
+                <button
+                  className="btn-primary"
+                  type="submit"
+                  disabled={inviteLoading || (!selectedUser && !inviteQuery.trim())}
+                  style={{ fontSize: '0.875rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  {inviteLoading ? <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> : <Users size={14} />}
+                  {inviteLoading ? '...' : t('invitations.inviteButton')}
+                </button>
+              </div>
+
+              {/* Autocomplete dropdown */}
+              {userSuggestions.length > 0 && !selectedUser && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 80,
+                  background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)',
+                  borderRadius: 10, zIndex: 50, marginTop: 4,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)', overflow: 'hidden',
+                }}>
+                  {suggLoading ? (
+                    <div style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>กำลังค้นหา...</div>
+                  ) : (
+                    userSuggestions.map((u) => (
+                      <button
+                        key={u.uid}
+                        type="button"
+                        onClick={() => { setSelectedUser(u); setInviteQuery(u.username); setUserSuggestions([]); }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem',
+                          padding: '0.6rem 1rem', background: 'none', border: 'none',
+                          cursor: 'pointer', textAlign: 'left',
+                          borderBottom: '1px solid var(--glass-border)',
+                          transition: 'background 0.1s',
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--glass)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                      >
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))', backgroundSize: 'cover', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white', fontWeight: 700 }}>
+                          {!u.avatarUrl && u.displayName?.[0]}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>{u.displayName}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>@{u.username}</div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </form>
-          {inviteMsg && <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: inviteMsg.startsWith('Invited') ? '#34d399' : '#f87171' }}>{inviteMsg}</p>}
+          {inviteMsg && <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: inviteMsgOk ? '#34d399' : '#f87171' }}>{inviteMsg}</p>}
 
           <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--glass-border)' }}>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Or share this invite link to allow anyone to collaborate:</p>
