@@ -17,6 +17,11 @@ export default function CommunityPage() {
   
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
+  
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const { data: session } = useSession();
   const currentUser = session?.user as any;
   
@@ -60,13 +65,34 @@ export default function CommunityPage() {
         body: JSON.stringify({ chatId: 'social_board', content: newPostContent.trim() })
       });
       if (res.ok) {
+        const newPost = await res.json();
         setNewPostContent('');
-        fetchData();
+        // Add immediately to top without full refresh
+        setSocialPosts(prev => [newPost, ...prev]);
       }
     } catch (error) {
       console.error(error);
     }
     setPosting(false);
+  };
+
+  const handleEditSubmit = async (id: string) => {
+    if (!editingContent.trim() || savingEdit) return;
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`/api/messages/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editingContent.trim() })
+      });
+      if (res.ok) {
+        setSocialPosts(posts => posts.map(p => p.id === id ? { ...p, content: editingContent.trim() } : p));
+        setEditingPostId(null);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    setSavingEdit(false);
   };
 
   const handleDeletePost = async (id: string) => {
@@ -319,10 +345,23 @@ export default function CommunityPage() {
                     const isAuthor = currentUser?.uid === post.senderId || currentUser?.role === 'admin';
                     return (
                       <div key={post.id} className="glass card-hover" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
-                        {isAuthor && (
-                          <button onClick={() => handleDeletePost(post.id)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
-                            <Trash2 size={16} />
-                          </button>
+                        {isAuthor && editingPostId !== post.id && (
+                          <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                              onClick={() => { setEditingPostId(post.id); setEditingContent(post.content); }} 
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
+                              title={t('common.edit') || 'แก้ไข'}
+                            >
+                              <RefreshCw size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDeletePost(post.id)} 
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
+                              title={t('common.delete') || 'ลบ'}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         )}
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                           <Link href={`/profile/${post.senderId}`} style={{ textDecoration: 'none' }}>
@@ -347,9 +386,40 @@ export default function CommunityPage() {
                               </span>
                             </div>
                             
-                            <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: '1rem' }}>
-                              {parseLinks(post.content)}
-                            </div>
+                            {editingPostId === post.id ? (
+                              <div style={{ marginBottom: '1rem' }}>
+                                <textarea 
+                                  value={editingContent}
+                                  onChange={e => setEditingContent(e.target.value)}
+                                  style={{
+                                    width: '100%', minHeight: '60px', padding: '0.5rem', borderRadius: 'var(--radius)',
+                                    border: '1px solid var(--primary)', background: 'var(--bg-elevated)', color: 'var(--text-main)',
+                                    resize: 'vertical', fontSize: '0.9rem', outline: 'none', marginBottom: '0.5rem'
+                                  }}
+                                />
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <button 
+                                    onClick={() => handleEditSubmit(post.id)}
+                                    disabled={savingEdit || !editingContent.trim()}
+                                    className="btn-primary"
+                                    style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px' }}
+                                  >
+                                    {t('common.save') || 'บันทึก'}
+                                  </button>
+                                  <button 
+                                    onClick={() => setEditingPostId(null)}
+                                    disabled={savingEdit}
+                                    style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px', background: 'var(--glass)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
+                                  >
+                                    {t('common.cancel') || 'ยกเลิก'}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: '1rem' }}>
+                                {parseLinks(post.content)}
+                              </div>
+                            )}
                             
                             <div style={{ display: 'flex' }}>
                               <Link href={`/messages?userId=${post.senderId}`} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>
