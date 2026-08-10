@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
           bio: r.get('bio'),
           socialLinks,
           role: displayRole,
+          lastActiveAt: r.get('lastActiveAt') || null,
         };
       });
 

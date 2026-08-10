@@ -55,6 +55,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uid
       role: displayRole,
       universes,
       characters,
+      lastActiveAt: user.get('lastActiveAt') || null,
       createdAt: user.get('createdAt'),
     });
   } catch (error: any) {

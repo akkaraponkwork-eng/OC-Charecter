@@ -73,9 +73,19 @@ export default function Navbar() {
     checkNotifications();
     const interval = setInterval(checkNotifications, 10000);
     
+    // Ping online status every 5 minutes
+    const pingStatus = async () => {
+      try {
+        await fetch('/api/users/ping', { method: 'POST' });
+      } catch (e) {}
+    };
+    pingStatus();
+    const pingInterval = setInterval(pingStatus, 5 * 60 * 1000);
+    
     window.addEventListener('chatRead', checkNotifications);
     return () => {
       clearInterval(interval);
+      clearInterval(pingInterval);
       window.removeEventListener('chatRead', checkNotifications);
     };
   }, [session?.user?.email]);

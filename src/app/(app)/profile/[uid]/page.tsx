@@ -41,13 +41,26 @@ export default function PublicProfilePage({ params }: { params: Promise<{ uid: s
     <div className="page-container" style={{ maxWidth: 720 }}>
       <div className="glass" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
-            background: profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.75rem', fontWeight: 700, color: 'white', border: '3px solid var(--glass-border)',
-          }}>
-            {!profile.avatarUrl && (profile.displayName || '?')[0].toUpperCase()}
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
+              background: profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.75rem', fontWeight: 700, color: 'white', border: '3px solid var(--glass-border)',
+            }}>
+              {!profile.avatarUrl && (profile.displayName || '?')[0].toUpperCase()}
+            </div>
+            {/* Online Status Indicator */}
+            {(() => {
+              const isOnline = profile.lastActiveAt && (Date.now() - new Date(profile.lastActiveAt).getTime() < 10 * 60 * 1000);
+              return (
+                <div style={{
+                  position: 'absolute', bottom: 4, right: 4, width: 16, height: 16, borderRadius: '50%',
+                  background: isOnline ? '#10b981' : '#ef4444',
+                  border: '3px solid var(--bg-main)'
+                }} title={isOnline ? 'Online' : 'Offline'} />
+              );
+            })()}
           </div>
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 800 }} className={profile.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>{profile.displayName}</h1>

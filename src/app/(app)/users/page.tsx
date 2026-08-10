@@ -198,13 +198,20 @@ export default function CommunityPage() {
                 {filteredUsers.map((u) => (
                   <Link href={`/profile/${u.uid}`} key={u.uid} style={{ textDecoration: 'none' }}>
                     <div className="glass card-hover" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1rem', borderRadius: 'var(--radius-lg)' }}>
-                      <div style={{
-                        width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
-                        background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '2rem', fontWeight: 700, color: 'white', border: '3px solid var(--glass-border)',
-                      }}>
-                        {!u.avatarUrl && (u.displayName?.[0] || u.username?.[0] || '?').toUpperCase()}
+                      <div style={{ position: 'relative' }}>
+                        <div style={{
+                          width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
+                          background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '2rem', fontWeight: 700, color: 'white', border: '3px solid var(--glass-border)',
+                        }}>
+                          {!u.avatarUrl && (u.displayName?.[0] || u.username?.[0] || '?').toUpperCase()}
+                        </div>
+                        <div style={{
+                          position: 'absolute', bottom: 4, right: 4, width: 14, height: 14, borderRadius: '50%',
+                          background: u.lastActiveAt && (Date.now() - new Date(u.lastActiveAt).getTime() < 10 * 60 * 1000) ? '#10b981' : '#ef4444',
+                          border: '2px solid var(--bg-main)'
+                        }} title={u.lastActiveAt && (Date.now() - new Date(u.lastActiveAt).getTime() < 10 * 60 * 1000) ? 'Online' : 'Offline'} />
                       </div>
                       <div>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.2rem' }} className={u.role === 'admin' ? 'text-role-admin' : 'text-role-user'}>
@@ -374,13 +381,27 @@ export default function CommunityPage() {
                         )}
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                           <Link href={`/profile/${post.senderId}`} style={{ textDecoration: 'none' }}>
-                            <div style={{
-                              width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-                              background: post.senderAvatar ? `url(${post.senderAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '1.25rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
-                            }}>
-                              {!post.senderAvatar && (post.senderName?.[0] || '?').toUpperCase()}
+                            <div style={{ position: 'relative' }}>
+                              <div style={{
+                                width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
+                                background: post.senderAvatar ? `url(${post.senderAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '1.25rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
+                              }}>
+                                {!post.senderAvatar && (post.senderName?.[0] || '?').toUpperCase()}
+                              </div>
+                              {/* Find user to check online status */}
+                              {(() => {
+                                const postUser = users.find(u => u.uid === post.senderId);
+                                const isOnline = postUser?.lastActiveAt && (Date.now() - new Date(postUser.lastActiveAt).getTime() < 10 * 60 * 1000);
+                                return postUser ? (
+                                  <div style={{
+                                    position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: '50%',
+                                    background: isOnline ? '#10b981' : '#ef4444',
+                                    border: '2px solid var(--bg-main)'
+                                  }} title={isOnline ? 'Online' : 'Offline'} />
+                                ) : null;
+                              })()}
                             </div>
                           </Link>
                           <div style={{ flex: 1, minWidth: 0 }}>
