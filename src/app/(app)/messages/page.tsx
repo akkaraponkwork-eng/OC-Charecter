@@ -5,7 +5,8 @@ import { useLocale } from '@/store/useLocale';
 import { useSearchParams } from 'next/navigation';
 import ChatBox from '@/components/ChatBox';
 import CreateGroupModal from '@/components/CreateGroupModal';
-import { MessageCircle, Globe, User, Users, Plus, Trash2, LogOut } from 'lucide-react';
+import ManageGroupModal from '@/components/ManageGroupModal';
+import { MessageCircle, Globe, User, Users, Plus, Trash2, LogOut, Settings } from 'lucide-react';
 import { useToast } from '@/store/useToast';
 
 type TabType = 'dms' | 'groups' | 'public';
@@ -19,6 +20,7 @@ function MessagesContent() {
   const [activeChatTitle, setActiveChatTitle] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('dms');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [managingGroup, setManagingGroup] = useState<any>(null);
   const searchParams = useSearchParams();
   const userIdFromUrl = searchParams.get('userId');
   const uid = (session?.user as any)?.uid;
@@ -169,16 +171,25 @@ function MessagesContent() {
         {chat.type === 'group' && (
           <div style={{ display: 'flex', gap: '0.25rem', paddingRight: '0.75rem', flexShrink: 0 }}>
             {(isOwner || isAdmin) ? (
-              <button
-                onClick={() => deleteGroup(chat.id, chat.title)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
-                title="ลบกลุ่ม"
-              >
-                <Trash2 size={14} />
-              </button>
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setManagingGroup(chat); }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
+                  title="จัดการสมาชิกกลุ่ม"
+                >
+                  <Settings size={14} />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteGroup(chat.id, chat.title); }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
+                  title="ลบกลุ่ม"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </>
             ) : (
               <button
-                onClick={() => leaveGroup(chat.id, chat.title)}
+                onClick={(e) => { e.stopPropagation(); leaveGroup(chat.id, chat.title); }}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center' }}
                 title="ออกจากกลุ่ม"
               >
@@ -311,6 +322,17 @@ function MessagesContent() {
             setActiveChatId(group.id);
             setActiveChatTitle(group.name);
             setActiveTab('groups');
+          }}
+        />
+      )}
+
+      {/* Manage Group Modal */}
+      {managingGroup && (
+        <ManageGroupModal
+          chat={managingGroup}
+          onClose={() => setManagingGroup(null)}
+          onUpdated={() => {
+            fetchChats();
           }}
         />
       )}
