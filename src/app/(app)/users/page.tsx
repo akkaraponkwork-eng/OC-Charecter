@@ -29,7 +29,7 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   const fetchData = async () => {
     setRefreshing(true);
