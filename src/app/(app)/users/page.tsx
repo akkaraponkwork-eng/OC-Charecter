@@ -9,7 +9,7 @@ import CharacterCard from '@/components/CharacterCard';
 import CharacterAlbumStack from '@/components/CharacterAlbumStack';
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters' | 'socials'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'universes' | 'characters'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [universes, setUniverses] = useState<any[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
@@ -174,12 +174,6 @@ export default function CommunityPage() {
         >
           <UserIcon size={18} /> {t('community.charactersTab') || 'Characters'} ({characters.length})
         </button>
-        <button 
-          onClick={() => setActiveTab('socials')} 
-          style={{ background: 'none', border: 'none', padding: '0.75rem 1rem', color: activeTab === 'socials' ? 'var(--text-main)' : 'var(--text-muted)', borderBottom: activeTab === 'socials' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
-        >
-          <Users size={18} /> {t('community.socialsTab') || 'หาเพื่อน & แลกโซเชียล'}
-        </button>
       </div>
 
       {loading ? (
@@ -300,172 +294,6 @@ export default function CommunityPage() {
                 })()}
               </div>
             )
-          )}
-
-          {activeTab === 'socials' && (
-            <div style={{ padding: '0 0.5rem', maxWidth: 800, margin: '0 auto' }}>
-              <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', background: 'linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1))', border: '1px solid rgba(124, 58, 237, 0.2)' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  🤝 {t('community.socialsTitle') || 'หาเพื่อน แลกไอดี และร่วมคอลแลป!'}
-                </h2>
-                
-                {currentUser ? (
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <div style={{
-                      width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-                      background: currentUser?.avatarUrl || currentUser?.image ? `url(${currentUser.avatarUrl || currentUser.image}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '1.2rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
-                    }}>
-                      {!(currentUser?.avatarUrl || currentUser?.image) && (currentUser?.name?.[0] || currentUser?.username?.[0] || '?').toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <textarea 
-                        placeholder="เขียนแนะนำตัว ฝากช่องทางติดต่อ หรือแปะลิ้งก์ที่นี่..."
-                        value={newPostContent}
-                        onChange={e => setNewPostContent(e.target.value)}
-                        style={{
-                          width: '100%', minHeight: '80px', padding: '0.75rem 1rem', borderRadius: 'var(--radius)',
-                          border: '1px solid var(--glass-border)', background: 'var(--bg-main)', color: 'var(--text-main)',
-                          resize: 'vertical', fontSize: '0.9rem', outline: 'none', marginBottom: '0.5rem'
-                        }}
-                      />
-                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button 
-                          onClick={handlePostSubmit} 
-                          disabled={posting || !newPostContent.trim()}
-                          className="btn-primary" 
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '99px', opacity: (!newPostContent.trim() || posting) ? 0.5 : 1 }}
-                        >
-                          <Send size={14} /> โพสต์
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '1rem' }}>
-                    <p style={{ color: 'var(--text-muted)' }}>กรุณาเข้าสู่ระบบเพื่อโพสต์แนะนำตัวและแปะลิ้งก์ของคุณ</p>
-                    <Link href="/login" className="btn-primary" style={{ display: 'inline-block', marginTop: '1rem', padding: '0.5rem 1.25rem', borderRadius: '99px', textDecoration: 'none' }}>
-                      เข้าสู่ระบบ
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {socialPosts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-                  <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                  <p>{t('community.emptySocials') || 'ยังไม่มีใครโพสต์แนะนำตัวเลย มาเริ่มเป็นคนแรกสิ!'}</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {socialPosts.map((post) => {
-                    const isAuthor = currentUser?.uid === post.senderId || currentUser?.role === 'admin';
-                    return (
-                      <div key={post.id} className="glass card-hover" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
-                        {isAuthor && editingPostId !== post.id && (
-                          <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem' }}>
-                            <button 
-                              onClick={() => { setEditingPostId(post.id); setEditingContent(post.content); }} 
-                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
-                              title={t('common.edit') || 'แก้ไข'}
-                            >
-                              <RefreshCw size={16} />
-                            </button>
-                            <button 
-                              onClick={() => handleDeletePost(post.id)} 
-                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
-                              title={t('common.delete') || 'ลบ'}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                          <Link href={`/profile/${post.senderId}`} style={{ textDecoration: 'none' }}>
-                            <div style={{ position: 'relative' }}>
-                              <div style={{
-                                width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-                                background: post.senderAvatar ? `url(${post.senderAvatar}) center/cover` : 'linear-gradient(135deg, var(--primary), var(--accent))',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.25rem', fontWeight: 700, color: 'white', border: '2px solid var(--glass-border)',
-                              }}>
-                                {!post.senderAvatar && (post.senderName?.[0] || '?').toUpperCase()}
-                              </div>
-                              {/* Find user to check online status */}
-                              {(() => {
-                                const postUser = users.find(u => u.uid === post.senderId);
-                                const isOnline = postUser?.lastActiveAt && (Date.now() - new Date(postUser.lastActiveAt).getTime() < 10 * 60 * 1000);
-                                return postUser ? (
-                                  <div style={{
-                                    position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: '50%',
-                                    background: isOnline ? '#10b981' : '#ef4444',
-                                    border: '2px solid var(--bg-main)'
-                                  }} title={isOnline ? 'Online' : 'Offline'} />
-                                ) : null;
-                              })()}
-                            </div>
-                          </Link>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                              <Link href={`/profile/${post.senderId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
-                                  {post.senderName}
-                                </h3>
-                              </Link>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)' }}>
-                                {new Date(post.createdAt).toLocaleDateString()} {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            
-                            {editingPostId === post.id ? (
-                              <div style={{ marginBottom: '1rem' }}>
-                                <textarea 
-                                  value={editingContent}
-                                  onChange={e => setEditingContent(e.target.value)}
-                                  style={{
-                                    width: '100%', minHeight: '60px', padding: '0.5rem', borderRadius: 'var(--radius)',
-                                    border: '1px solid var(--primary)', background: 'var(--bg-elevated)', color: 'var(--text-main)',
-                                    resize: 'vertical', fontSize: '0.9rem', outline: 'none', marginBottom: '0.5rem'
-                                  }}
-                                />
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                  <button 
-                                    onClick={() => handleEditSubmit(post.id)}
-                                    disabled={savingEdit || !editingContent.trim()}
-                                    className="btn-primary"
-                                    style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px' }}
-                                  >
-                                    {t('common.save') || 'บันทึก'}
-                                  </button>
-                                  <button 
-                                    onClick={() => setEditingPostId(null)}
-                                    disabled={savingEdit}
-                                    style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem', borderRadius: '4px', background: 'var(--glass)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
-                                  >
-                                    {t('common.cancel') || 'ยกเลิก'}
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: '1rem' }}>
-                                {parseLinks(post.content)}
-                              </div>
-                            )}
-                            
-                            <div style={{ display: 'flex' }}>
-                              <Link href={`/messages?userId=${post.senderId}`} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>
-                                {t('profile.sendMessage') || 'ส่งข้อความ'}
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
           )}
         </>
       )}
