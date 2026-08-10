@@ -15,8 +15,6 @@ interface Relation {
   id: string;
   imageUrl: string;
   description: string;
-  characterId?: string;
-  name?: string;
 }
 
 interface Stat {
@@ -44,7 +42,6 @@ const DEFAULT_STATS: Stat[] = [
 
 export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialData, universeId }: CharacterFormModalProps) {
   const [loading, setLoading] = useState(false);
-  const [myCharacters, setMyCharacters] = useState<any[]>([]);
 
   // Basic Info
   const [name, setName] = useState('');
@@ -78,13 +75,6 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
 
   useEffect(() => {
     if (isOpen) {
-      fetch('/api/characters')
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setMyCharacters(data);
-        })
-        .catch(err => console.error(err));
-
       if (initialData) {
         setName(initialData.name || '');
         setImageUrl(initialData.imageUrl || '');
@@ -411,50 +401,12 @@ export default function CharacterFormModal({ isOpen, onClose, onSubmit, initialD
               <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {relations.map((relation) => (
                   <div key={relation.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ flexShrink: 0, width: 100, display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
-                      {relation.imageUrl ? (
-                        <>
-                          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '2px solid rgba(14,165,233,0.5)', overflow: 'hidden' }}>
-                            <ImageUpload onUploaded={(url) => updateRelation(relation.id, 'imageUrl', url)} currentUrl={relation.imageUrl} size={80} />
-                          </div>
-                          <button onClick={() => {
-                            setRelations(rels => rels.map(r => r.id === relation.id ? { ...r, imageUrl: '', characterId: '', name: '' } : r));
-                          }} type="button" style={{ background: 'none', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: 4, cursor: 'pointer' }}>
-                            ลบรูปภาพ
-                          </button>
-                        </>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', alignItems: 'center' }}>
-                          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '2px dashed rgba(255,255,255,0.2)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
-                            <ImageUpload onUploaded={(url) => updateRelation(relation.id, 'imageUrl', url)} currentUrl="" size={80} />
-                          </div>
-                          
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>- หรือ -</div>
-                          
-                          <select 
-                            style={{ fontSize: '0.75rem', padding: '0.4rem', width: '100%', background: 'rgba(14,165,233,0.1)', color: '#0ea5e9', border: '1px solid rgba(14,165,233,0.3)', borderRadius: 6, outline: 'none', cursor: 'pointer', textAlign: 'center' }}
-                            value={relation.characterId || ''}
-                            onChange={(e) => {
-                              const charId = e.target.value;
-                              if (!charId) return;
-                              const char = myCharacters.find(c => c.id === charId);
-                              if (char) {
-                                setRelations(rels => rels.map(r => r.id === relation.id ? { ...r, characterId: char.id, name: char.name, imageUrl: char.imageUrl || r.imageUrl } : r));
-                              }
-                            }}
-                          >
-                            <option value="">+ ดึงจากคาแรคเตอร์</option>
-                            {myCharacters.filter(c => c.id !== initialData?.id).map(c => (
-                              <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
+                    <div style={{ flexShrink: 0, width: 80, height: 80, borderRadius: '50%', border: '2px dashed rgba(14,165,233,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,165,233,0.05)' }}>
+                      <ImageUpload onUploaded={(url) => updateRelation(relation.id, 'imageUrl', url)} currentUrl={relation.imageUrl} size={80} />
                     </div>
-
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <textarea className="input" style={{ width: '100%', resize: 'vertical', minHeight: 60, padding: '0.5rem', fontSize: '0.85rem' }} value={relation.description} onChange={(e) => updateRelation(relation.id, 'description', e.target.value)} placeholder={relation.name ? `ระบุความสัมพันธ์กับ ${relation.name}...` : "ข้อมูล / บทบาท / ความสัมพันธ์..."} />
+                        <textarea className="input" style={{ width: '100%', resize: 'vertical', minHeight: 60, padding: '0.5rem', fontSize: '0.85rem' }} value={relation.description} onChange={(e) => updateRelation(relation.id, 'description', e.target.value)} placeholder="ข้อมูล / บทบาท / ความสัมพันธ์..." />
                         <button type="button" onClick={() => removeRelation(relation.id)} className="btn-danger" style={{ padding: '0.4rem', marginLeft: '0.5rem' }}><Trash2 size={16} /></button>
                       </div>
                     </div>
