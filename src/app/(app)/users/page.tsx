@@ -34,10 +34,10 @@ export default function CommunityPage() {
     setRefreshing(true);
     try {
       const [usersRes, uniRes, charRes, socialRes] = await Promise.all([
-        fetch('/api/users').then(r => r.json()),
-        fetch('/api/community/universes').then(r => r.json()),
-        fetch('/api/community/characters').then(r => r.json()),
-        fetch('/api/messages?chatId=social_board').then(r => r.json())
+        fetch('/api/users', { cache: 'no-store' }).then(r => r.json()),
+        fetch('/api/community/universes', { cache: 'no-store' }).then(r => r.json()),
+        fetch('/api/community/characters', { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/messages?chatId=social_board&t=${Date.now()}`, { cache: 'no-store' }).then(r => r.json())
       ]);
       
       setUsers(Array.isArray(usersRes) ? usersRes : []);

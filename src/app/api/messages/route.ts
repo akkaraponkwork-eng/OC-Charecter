@@ -4,6 +4,8 @@ import { getSheet, SHEET_NAMES, clearSheetCache } from '@/lib/google-sheets';
 import { v4 as uuidv4 } from 'uuid';
 import { generateDmChatId } from '@/lib/auth-helpers';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   const uid = session?.user ? (session.user as any).uid : null;
